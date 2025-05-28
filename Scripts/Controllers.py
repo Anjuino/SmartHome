@@ -6,7 +6,7 @@ import ParseIncomingMesseage
 SECRET_KEY = "Mesn72154_"  
 USERNAME = "Anjey"         
 
-class WebSocketESP32(tornado.websocket.WebSocketHandler):
+class WebSocketESP(tornado.websocket.WebSocketHandler):
 
    DeviceList = []  # Список подключенных устройств
 
