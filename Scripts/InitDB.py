@@ -1,27 +1,30 @@
 import sqlite3
+import os
+script_dir = os.path.dirname(os.path.abspath(__file__))
+PATHDATABASE = os.path.join(script_dir, '../DataBase/IOT_Sysytem.db')
 
-conn = sqlite3.connect('IOT_System.db')
+conn = sqlite3.connect(PATHDATABASE)
 cursor = conn.cursor()
 
-
+# Создаем таблицу пользователей
 cursor.execute('''
-CREATE TABLE IF NOT EXISTS users (
-   id INTEGER PRIMARY KEY AUTOINCREMENT,
-   login TEXT UNIQUE NOT NULL,
-   password TEXT NOT NULL,
-   token TEXT UNIQUE NOT NULL
+CREATE TABLE IF NOT EXISTS Users (
+   Id       INTEGER PRIMARY KEY AUTOINCREMENT,
+   Login    TEXT UNIQUE NOT NULL,
+   Password TEXT NOT NULL,
+   Token    TEXT UNIQUE NOT NULL
 )
 ''')
 
 # Создаем таблицу контроллеров
 cursor.execute('''
-CREATE TABLE IF NOT EXISTS controllers (
-   id INTEGER PRIMARY KEY AUTOINCREMENT,
-   chipid TEXT NOT NULL,
-   token TEXT NOT NULL,
-   user_id INTEGER NOT NULL,
-   FOREIGN KEY (user_id) REFERENCES users (id),
-   UNIQUE(chipid, token)
+CREATE TABLE IF NOT EXISTS Comtrollers (
+   Id          INTEGER PRIMARY KEY AUTOINCREMENT,
+   ChipId      TEXT NOT NULL,
+   DeviceName  TEXT,
+   UserId      INTEGER NOT NULL,
+   FOREIGN KEY (UserId) REFERENCES Users (Id),
+   UNIQUE(ChipId)
 )
 ''')
 

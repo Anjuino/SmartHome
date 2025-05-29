@@ -2,7 +2,7 @@ import asyncio
 import tornado.web
 import OTA
 import Controllers
-
+import DataBase
 
 
 def make_app():
@@ -19,4 +19,5 @@ async def main():
    await asyncio.Event().wait()
 
 if __name__ == "__main__":
+   #DataBase.add_user("Uniport", "l9k0167kcb")
    asyncio.run(main()) 

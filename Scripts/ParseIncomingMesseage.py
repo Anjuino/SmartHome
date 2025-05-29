@@ -6,18 +6,29 @@ def ParseMesseage(self, Messeage):
 
    DataJson = json.loads(Messeage)
 
-   if (DataJson['TypeMesseage'] == 'Registration'): Registration(self, DataJson)
+   if (DataJson['TypeMesseage'] == 'Authentication'): Authentication(self, DataJson)
 
             
 
-def Registration(self, Json):
+def Authentication(self, Json):
+
+   ChipId     = Json['ChipId']
+   Token      = Json['Token']
+
+   if (DataBase.CheckController(ChipId)): pass        # Смотрю наличие контроллера в базе, если есть, то иду дальше, если нет, то записываю
+   else: 
+      if (DataBase.SetController(ChipId, Token)): pass
+      else:
+         print("Токен контроллера неверный")
+         Messeage = json.dumps({"Command": "ResetToken"}, ensure_ascii=False)
+         self.write_message(Messeage)
+         return
+         # Вот тут отправить в контроллер событие что токен который он передал не найден и нужно сбросить текущий токен и перезагрузиться
 
 
-# Найти в базе данных пользователя с указанным токеном и записать в таблицу контроллеров chipid token user и добавить в list
-
+   DeviceName = DataBase.GetControllerName(ChipId)   
    FoundDevice = False
    for client in list(self.DeviceList):
-      ChipId = 1
       if client['ChipId'] == ChipId: 
          self.clients['ws'] = self
          FoundDevice = True
@@ -25,7 +36,6 @@ def Registration(self, Json):
 
    if not FoundDevice:
       self.clients.append({'ChipId' : ChipId, 
-                           'Type': DeviceType, 
                            'DeviceName': DeviceName, 
                            'ws': self,
                            'Sensors': []}) # добавляем новый
