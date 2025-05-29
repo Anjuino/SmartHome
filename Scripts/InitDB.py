@@ -18,7 +18,7 @@ CREATE TABLE IF NOT EXISTS Users (
 
 # Создаем таблицу контроллеров
 cursor.execute('''
-CREATE TABLE IF NOT EXISTS Comtrollers (
+CREATE TABLE IF NOT EXISTS Controllers (
    Id          INTEGER PRIMARY KEY AUTOINCREMENT,
    ChipId      TEXT NOT NULL,
    DeviceName  TEXT,

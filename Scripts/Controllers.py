@@ -7,8 +7,15 @@ SECRET_KEY = "Mesn72154_"
 USERNAME = "Anjey"         
 
 class WebSocketESP(tornado.websocket.WebSocketHandler):
+   ping_interval = 30 
+   ping_timeout  = 10
 
    DeviceList = []  # Список подключенных устройств
+   def on_pong(self, data): 
+      pass
+      # Вызывается при получении Pong от клиента
+      # print(f"Получен Pong от {self}: {data}")
+
 
    def open(self):
       auth_header = self.request.headers.get("Authorization")

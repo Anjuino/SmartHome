@@ -51,10 +51,10 @@ def CheckController(ChipId):
 def GetControllerName(ChipId):
    connection = sqlite3.connect(PATHDATABASE)
    cursor = connection.cursor()
-   cursor.execute('SELECT DevuceName FROM Controllers WHERE ChipId = ?', (ChipId,))
+   cursor.execute('SELECT DeviceName FROM Controllers WHERE ChipId = ?', (ChipId,))
    result = cursor.fetchone()
    connection.close()
-   return result[0]
+   return result
 
 # Записать контроллер в базу
 def SetController(ChipId, Token):

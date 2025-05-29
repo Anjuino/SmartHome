@@ -15,7 +15,7 @@ def make_app():
 async def main():
    app = make_app()
    app.listen(7777)
-   print("запустил сервер")
+   print("Запустил сервер")
    await asyncio.Event().wait()
 
 if __name__ == "__main__":

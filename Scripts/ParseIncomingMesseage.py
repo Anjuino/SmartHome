@@ -17,7 +17,7 @@ def Authentication(self, Json):
    
    print(ChipId)
    print(Token)
-   """if (DataBase.CheckController(ChipId)): pass        # Смотрю наличие контроллера в базе, если есть, то иду дальше, если нет, то записываю
+   if (DataBase.CheckController(ChipId)): pass        # Смотрю наличие контроллера в базе, если есть, то иду дальше, если нет, то записываю
    else: 
       if (DataBase.SetController(ChipId, Token)): pass
       else:
@@ -28,17 +28,21 @@ def Authentication(self, Json):
          # Вот тут отправить в контроллер событие что токен который он передал не найден и нужно сбросить текущий токен и перезагрузиться
 
 
-   DeviceName = DataBase.GetControllerName(ChipId)   
+   DeviceName = DataBase.GetControllerName(ChipId)
+   print(DeviceName)   
    FoundDevice = False
-   for client in list(self.DeviceList):
+   # Ищем устройство в списке
+   for index, client in enumerate(self.DeviceList):
       if client['ChipId'] == ChipId: 
-         self.clients['ws'] = self
+         # Обновляем существующее устройство
+         self.DeviceList[index]['ws'] = self
          FoundDevice = True
          break
 
    if not FoundDevice:
-      self.clients.append({'ChipId' : ChipId, 
+      self.DeviceList.append({'ChipId' : ChipId, 
                            'DeviceName': DeviceName, 
                            'ws': self,
                            'Sensors': []}) # добавляем новый
-                """
+
+   print(self.DeviceList)       
