@@ -14,8 +14,10 @@ def Authentication(self, Json):
 
    ChipId     = Json['ChipId']
    Token      = Json['Token']
-
-   if (DataBase.CheckController(ChipId)): pass        # Смотрю наличие контроллера в базе, если есть, то иду дальше, если нет, то записываю
+   
+   print(ChipId)
+   print(Token)
+   """if (DataBase.CheckController(ChipId)): pass        # Смотрю наличие контроллера в базе, если есть, то иду дальше, если нет, то записываю
    else: 
       if (DataBase.SetController(ChipId, Token)): pass
       else:
@@ -39,4 +41,4 @@ def Authentication(self, Json):
                            'DeviceName': DeviceName, 
                            'ws': self,
                            'Sensors': []}) # добавляем новый
-                
+                """
