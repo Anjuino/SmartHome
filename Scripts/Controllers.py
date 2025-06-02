@@ -11,6 +11,20 @@ class WebSocketESP(tornado.websocket.WebSocketHandler):
    ping_timeout  = 30
 
    DeviceList = []  # Список подключенных устройств
+
+   pending_responses = {}  # Добавляем словарь для ожидающих ответов
+    
+   async def wait_for_response(self, chip_id, response_type, timeout=5):
+      """Ожидает ответ определенного типа от устройства"""
+      future = asyncio.Future()
+      key = (chip_id, response_type)
+      self.pending_responses[key] = future
+      
+      try:
+         return await asyncio.wait_for(future, timeout)
+      finally:
+         self.pending_responses.pop(key, None)
+
    def on_pong(self, data): 
       pass
       # Вызывается при получении Pong от клиента

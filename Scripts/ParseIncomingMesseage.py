@@ -6,6 +6,23 @@ def ParseMesseage(self, Messeage):
 
    DataJson = json.loads(Messeage)
 
+   msg_type = DataJson.get('TypeMesseage')
+   chip_id = None
+   
+   # Находим chip_id для этого соединения
+   for client in self.DeviceList:
+      if client['ws'] == self:
+            chip_id = client["ChipId"]
+            break
+   
+   if not chip_id:
+      return
+      
+   # Проверяем, есть ли ожидающий этот ответ запрос
+   key = (chip_id, msg_type)
+   if key in self.pending_responses and not self.pending_responses[key].done():
+      self.pending_responses[key].set_result(DataJson)
+
    if (DataJson['TypeMesseage'] == 'Authentication'): Authentication(self, DataJson)
    if (DataJson['TypeMesseage'] == 'State'):          
       print(DataJson)
