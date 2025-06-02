@@ -7,10 +7,10 @@ import UserHandler
 
 def make_app():
    return tornado.web.Application([
-      (r"/ws",               Controllers.WebSocketESP),
-      (r"/ota",              OTA.OTAHandler),
-      (r"/GetFirmware",      OTA.FirmwareHandler),
-      (r"/api/SendFirmware", UserHandler.HTTPHandlerClient), 
+      (r"/ws",                             Controllers.WebSocketESP),
+      (r"/DeviceSetting/Ota",              OTA.OTAHandler),
+      (r"/DeviceSetting/GetFirmware",      OTA.FirmwareHandler),
+      (r"/DeviceSetting/SendFirmware",     UserHandler.HTTPHandlerClient), 
    ])
 
 async def main():
