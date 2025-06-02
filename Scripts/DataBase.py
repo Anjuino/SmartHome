@@ -54,7 +54,7 @@ def GetControllerName(ChipId):
    cursor.execute('SELECT DeviceName FROM Controllers WHERE ChipId = ?', (ChipId,))
    result = cursor.fetchone()
    connection.close()
-   return result
+   return result[0]
 
 # Записать контроллер в базу
 def SetController(ChipId, Token):
@@ -68,7 +68,7 @@ def SetController(ChipId, Token):
 
    if User:
       try:
-         cursor.execute('INSERT INTO Comtrollers (ChipId, DeviceName, UserId) VALUES (?, ?, ?)', (ChipId, "NONE", User[0]))
+         cursor.execute('INSERT INTO Controllers (ChipId, DeviceName, UserId) VALUES (?, ?, ?)', (ChipId, "NONE", User[0]))
          connection.commit()
          print(f'Контроллер с ChipId {ChipId} успешно добавлен для пользователя с Id {User[0]}.')
          TokenIs = True

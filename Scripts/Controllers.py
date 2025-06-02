@@ -7,8 +7,8 @@ SECRET_KEY = "Mesn72154_"
 USERNAME = "Anjey"         
 
 class WebSocketESP(tornado.websocket.WebSocketHandler):
-   ping_interval = 30 
-   ping_timeout  = 10
+   ping_interval = 10 
+   ping_timeout  = 30
 
    DeviceList = []  # Список подключенных устройств
    def on_pong(self, data): 
@@ -44,17 +44,17 @@ class WebSocketESP(tornado.websocket.WebSocketHandler):
          return
 
    def on_message(self, message):
-      print("Принял сообщение: %s" % message)
+      #print("Принял сообщение: %s" % message)
       ParseIncomingMesseage.ParseMesseage(self, message)
 
    def on_close(self):
-      print("Соединение закрыто")
       for client in list(self.DeviceList):
             if client['ws'] == self:
                ChipId = client["ChipId"]
                Message = f'Контроллер с UID {ChipId} отключился'
                print(Message)
-               self.clients.remove(client)
+               self.DeviceList.remove(client)
+      #print(self.DeviceList)
 
    def check_origin(self, origin):
       return True  
