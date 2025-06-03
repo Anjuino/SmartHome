@@ -4,9 +4,33 @@
     <title>OTA</title>
 </head>
 <body>
-    <form action="/DeviceSetting/ota" method="post" enctype="multipart/form-data">
+    <form action="/DeviceSetting/OTA" method="post" enctype="multipart/form-data">
         <input type="file" name="firmware" accept=".bin">
         <input type="submit" value="Отправить в контроллер">
     </form>
+
+    <form id="myForm">
+        <button type="button" onclick="sendJsonData()">Отправить команду</button>
+    </form>
+
+    <script>
+        function sendJsonData() {
+            const data = {
+                ChipId: 13464106,
+                TypeMesseage: "GetState"
+            };
+            
+            fetch('/DeviceSetting/SendMesseage', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(data => console.log('Success:', data))
+            .catch(error => console.error('Error:', error));
+        }
+    </script>
 </body>
 </html>

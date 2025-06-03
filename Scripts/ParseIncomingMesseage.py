@@ -2,76 +2,61 @@ import json
 import DataBase
 
 
-def ParseMesseage(self, Messeage):
-
+async def ParseMesseage(self, Messeage):
    DataJson = json.loads(Messeage)
 
-   msg_type = DataJson.get('TypeMesseage')
-   chip_id = None
-   
-   # Находим chip_id для этого соединения
-   for client in self.DeviceList:
-      if client['ws'] == self:
-            chip_id = client["ChipId"]
-            break
-   
-   if not chip_id:
-      return
-      
+   TypeMesseage = DataJson['TypeMesseage']
+   ChipId = DataJson['ChipId']
+
    # Проверяем, есть ли ожидающий этот ответ запрос
-   key = (chip_id, msg_type)
-   if key in self.pending_responses and not self.pending_responses[key].done():
-      self.pending_responses[key].set_result(DataJson)
+   key = (ChipId, TypeMesseage)
+   if key in self.ResponseBuffer and not self.ResponseBuffer[key].done(): 
+      self.ResponseBuffer[key].set_result(DataJson)
+   else:
+      if DataJson['TypeMesseage'] == 'Authentication': await Authentication(self, DataJson, ChipId)      
+      if DataJson['TypeMesseage'] == 'Log':            await LogHandler(self, DataJson, ChipId)
 
-   if (DataJson['TypeMesseage'] == 'Authentication'): Authentication(self, DataJson)
-   if (DataJson['TypeMesseage'] == 'State'):          
-      print(DataJson)
-      
-   if (DataJson['TypeMesseage'] == 'Log'):            LogHandler(self, DataJson)
-
-            
-def LogHandler(self, Json):
+async def LogHandler(self, Json, ChipId):
    for index, client in enumerate(self.DeviceList):
-      if client['ChipId'] == Json['ChipId']:
-
-         ChipId = Json['ChipId']
-         Log    = Json['Log']
+      if client['ChipId'] == ChipId:
+         Log = Json['Log']
          DeviceName = client['DeviceName']  
          print(f"Получил лог от {ChipId}:{DeviceName} ---> {Log}")
          break
 
-def Authentication(self, Json):
-
-   ChipId     = Json['ChipId']
-   Token      = Json['Token']
+async def Authentication(self, Json, ChipId):
+   Token = Json['Token']
    
-   #print(ChipId)
-   #print(Token)
-   if (DataBase.CheckController(ChipId)): pass        # Смотрю наличие контроллера в базе, если есть, то иду дальше, если нет, то записываю
+   # Проверяем наличие контроллера в базе
+   if await DataBase.CheckController(ChipId):
+      pass  # Контроллер уже есть в базе
    else: 
-      if (DataBase.SetController(ChipId, Token)): pass
+      if await DataBase.SetController(ChipId, Token):
+         pass  # Контроллер успешно добавлен
       else:
          print("Токен контроллера неверный")
          Messeage = json.dumps({"Command": "ResetToken"}, ensure_ascii=False)
-         self.write_message(Messeage)
+         await self.write_message(Messeage)
          return
-         # Вот тут отправить в контроллер событие что токен который он передал не найден и нужно сбросить текущий токен и перезагрузиться
 
-
-   DeviceName = DataBase.GetControllerName(ChipId)
-   #print(DeviceName)   
+   DeviceName = await DataBase.GetControllerName(ChipId)
    FoundDevice = False
+   
    # Ищем устройство в списке
    for index, client in enumerate(self.DeviceList):
-      if client['ChipId'] == ChipId: 
+      if client['ChipId'] == ChipId:
+         #print("Обновляю устройство в списке") 
          # Обновляем существующее устройство
          self.DeviceList[index]['ws'] = self
          FoundDevice = True
          break
 
    if not FoundDevice:
-      self.DeviceList.append({'ChipId' : ChipId, 
-                           'DeviceName': DeviceName, 
-                           'ws': self}) # добавляем новый
+      #print("Добавляю устройство как новое") 
+      self.DeviceList.append({
+         'ChipId': ChipId, 
+         'DeviceName': DeviceName, 
+         'ws': self
+      })
 
-   print(self.DeviceList)       
+   print(self.DeviceList)

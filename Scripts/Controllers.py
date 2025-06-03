@@ -1,29 +1,27 @@
 import tornado.websocket
 import base64
 import ParseIncomingMesseage
-
+import asyncio
 
 SECRET_KEY = "Mesn72154_"  
 USERNAME = "Anjey"         
 
 class WebSocketESP(tornado.websocket.WebSocketHandler):
-   ping_interval = 10 
-   ping_timeout  = 30
+   ping_interval = 30 
+   ping_timeout  = 60
 
-   DeviceList = []  # Список подключенных устройств
+   DeviceList = []         # Список подключенных устройств
 
-   pending_responses = {}  # Добавляем словарь для ожидающих ответов
+   ResponseBuffer = {}  # Добавляем словарь для ожидающих ответов
     
-   async def wait_for_response(self, chip_id, response_type, timeout=5):
+   async def WaitResponse(self, chip_id, response_type, timeout=5):
       """Ожидает ответ определенного типа от устройства"""
       future = asyncio.Future()
       key = (chip_id, response_type)
-      self.pending_responses[key] = future
+      self.ResponseBuffer[key] = future
       
-      try:
-         return await asyncio.wait_for(future, timeout)
-      finally:
-         self.pending_responses.pop(key, None)
+      try:     return await asyncio.wait_for(future, timeout)
+      finally: self.ResponseBuffer.pop(key, None)
 
    def on_pong(self, data): 
       pass
@@ -31,16 +29,16 @@ class WebSocketESP(tornado.websocket.WebSocketHandler):
       # print(f"Получен Pong от {self}: {data}")
 
 
-   def open(self):
-      auth_header = self.request.headers.get("Authorization")
-      print("Authorization header:", auth_header)
+   async def open(self):
+      AuthHeader = self.request.headers.get("Authorization")
+      #print("Authorization header:", auth_header)
 
-      if auth_header:
+      if AuthHeader:
          try:
-            auth_decoded = base64.b64decode(auth_header).decode("utf-8")
-            username, password = auth_decoded.split(':')
-            print("Контроллер:", username)
-            print("Пароль:", password)
+            AuthDecoded = base64.b64decode(AuthHeader).decode("utf-8")
+            username, password = AuthDecoded.split(':')
+            #print("Контроллер:", username)
+            #print("Пароль:", password)
 
             if username == USERNAME and password == SECRET_KEY: print("Соединение открыто")
             else:
@@ -57,16 +55,15 @@ class WebSocketESP(tornado.websocket.WebSocketHandler):
          self.close()
          return
 
-   def on_message(self, message):
+   async def on_message(self, message):
       #print("Принял сообщение: %s" % message)
-      ParseIncomingMesseage.ParseMesseage(self, message)
+      await ParseIncomingMesseage.ParseMesseage(self, message)
 
    def on_close(self):
       for client in list(self.DeviceList):
             if client['ws'] == self:
                ChipId = client["ChipId"]
-               Message = f'Контроллер с UID {ChipId} отключился'
-               print(Message)
+               print(f'Контроллер с UID {ChipId} отключился')
                self.DeviceList.remove(client)
       #print(self.DeviceList)
 
