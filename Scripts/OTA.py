@@ -5,7 +5,7 @@ FIRMWARE_PATH = "firmware.bin"
 
 class OTAHandler(tornado.web.RequestHandler):
     async def get(self):
-        self.render("../static/html/OTA.html")
+        self.render("../static/html/AdminPanel.html")
 
     async def post(self):
         if 'firmware' not in self.request.files:

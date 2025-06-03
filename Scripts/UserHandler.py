@@ -14,13 +14,12 @@ class HTTPHandlerClient(tornado.web.RequestHandler):
          ChipId = JsonData['ChipId']
          TypeMesseage = JsonData['TypeMesseage']
 
-         TypeResponse = 'None'
-         Request      = 'None' 
-
-         if (TypeMesseage == "GetState"):
+         TypeResponse = None
+         Request      = None
+         if (TypeMesseage == "GetState"): 
             TypeResponse = "State"
             Request = {"TypeMesseage": TypeMesseage}
-         
+
          # Находим нужное устройство
          Device = None
          for client in Controllers.WebSocketESP.DeviceList:

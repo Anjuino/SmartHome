@@ -3,14 +3,18 @@ import tornado.web
 import OTA
 import Controllers
 import UserHandler
+import AdminBoard
 
 
 def make_app():
    return tornado.web.Application([
-      (r"/ws",                             Controllers.WebSocketESP),
-      (r"/DeviceSetting/OTA",              OTA.OTAHandler),
-      (r"/DeviceSetting/GetFirmware",      OTA.FirmwareHandler),
-      (r"/DeviceSetting/SendMesseage",     UserHandler.HTTPHandlerClient), 
+      (r"/ws",                             Controllers.WebSocketESP), # Открытие соединения для контроллеров
+
+      (r"/AdminBoard",                     AdminBoard.AdminHandler),  # Страница с админкой для конкретного пользователя. Из полезного пока только прошивка контроллера и получение состояния (в идеале это пространство для тестирования запросов)
+
+      (r"/DeviceSetting/GetFirmware",      OTA.FirmwareHandler),      # Эндпоинт по которому сервер выдает прошивку по запросу от контроллера. Подумать как можно логику работы переместить в socket
+
+      (r"/Device/SendMesseage",     UserHandler.HTTPHandlerClient),   # Эндпоинт по которому можно отправлять сообщения в контроллер
    ])
 
 async def main():
