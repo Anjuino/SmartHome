@@ -16,11 +16,11 @@
     <script>
         function sendJsonData() {
             const data = {
-                ChipId: 15645883,
-                TypeMesseage: "GetState"
+                ChipId: 13464106,
+                TypeMesseage: "StartOTA"
             };
             
-            fetch('/DeviceSetting/SendMesseage', {
+            fetch('/Device/SendMesseage', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

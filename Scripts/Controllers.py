@@ -7,8 +7,8 @@ SECRET_KEY = "Mesn72154_"
 USERNAME = "Anjey"         
 
 class WebSocketESP(tornado.websocket.WebSocketHandler):
-   ping_interval = 60 
-   ping_timeout  = 30
+   #ping_interval = 30  # проверка каждые 30 секунд
+   #ping_timeout = 10   # ждём ответ 10 секунд
 
    DeviceList = []         # Список подключенных устройств
 

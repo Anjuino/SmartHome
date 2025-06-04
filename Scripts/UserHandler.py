@@ -20,6 +20,10 @@ class HTTPHandlerClient(tornado.web.RequestHandler):
             TypeResponse = "State"
             Request = {"TypeMesseage": TypeMesseage}
 
+         if (TypeMesseage == "StartOTA"):
+            TypeResponse = "GetFirmware"
+            Request = {"TypeMesseage": TypeMesseage}
+            
          # Находим нужное устройство
          Device = None
          for client in Controllers.WebSocketESP.DeviceList:
