@@ -1,6 +1,5 @@
 import asyncio  
 import tornado.web
-import OTA
 import Controllers
 import UserHandler
 import AdminBoard
@@ -8,10 +7,8 @@ import AdminBoard
 
 def make_app():
    return tornado.web.Application([
-      (r"/ws",                             Controllers.WebSocketESP), # Открытие соединения для контроллеров
-
-      (r"/AdminBoard",                     AdminBoard.AdminHandler),  # Страница с админкой для конкретного пользователя. Из полезного пока только прошивка контроллера и получение состояния (в идеале это пространство для тестирования запросов)
-
+      (r"/ws",                      Controllers.WebSocketESP),        # Открытие соединения для контроллеров
+      (r"/Admin",                   AdminBoard.AdminHandler),         # Страница с админкой для конкретного пользователя. Из полезного пока только прошивка контроллера и получение состояния (в идеале это пространство для тестирования запросов)
       (r"/Device/SendMesseage",     UserHandler.HTTPHandlerClient),   # Эндпоинт по которому можно отправлять сообщения в контроллер
    ])
 

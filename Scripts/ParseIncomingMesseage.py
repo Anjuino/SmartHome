@@ -57,11 +57,9 @@ async def Authentication(self, Json, ChipId):
    Token = Json['Token']
    
    # Проверяем наличие контроллера в базе
-   if await DataBase.CheckController(ChipId):
-      pass  # Контроллер уже есть в базе
+   if await DataBase.CheckController(ChipId): pass  # Контроллер уже есть в базе
    else: 
-      if await DataBase.SetController(ChipId, Token):
-         pass  # Контроллер успешно добавлен
+      if await DataBase.SetController(ChipId, Token): pass  # Контроллер успешно добавлен
       else:
          print("Токен контроллера неверный")
          Messeage = json.dumps({"Command": "ResetToken"}, ensure_ascii=False)

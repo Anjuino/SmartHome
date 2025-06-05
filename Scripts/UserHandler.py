@@ -4,10 +4,6 @@ import json
 import asyncio
 
 class HTTPHandlerClient(tornado.web.RequestHandler):
-   #async def get(self):
-      #Messeage = json.dumps({"TypeMesseage": "StartOTA"}, ensure_ascii=False)
-      #Controllers.WebSocketESP.DeviceList[0]['ws'].write_message(Messeage)
-
    async def post(self):
       try:
          JsonData = json.loads(self.request.body)
@@ -31,8 +27,11 @@ class HTTPHandlerClient(tornado.web.RequestHandler):
                "NumZone": JsonData['NumZone'],
                "OldName": JsonData['OldName'],
                "NewName": JsonData['NewName']
-            }   
-            
+            } 
+
+         if (TypeMesseage == "Reboot"):
+            Request = {"TypeMesseage": TypeMesseage}
+
          # Находим нужное устройство
          Device = None
          for client in Controllers.WebSocketESP.DeviceList:
@@ -45,13 +44,14 @@ class HTTPHandlerClient(tornado.web.RequestHandler):
          # Отправляем запрос устройству
          await Device.write_message(json.dumps(Request))
 
-         # Ждем ответ
+         # Если ждать ответ не надо, то отдадим в web ответ сразу
+         if not Request: self.write({'status': 'success'})    
+            
+         # Ждем ответ   
          Response = await Device.WaitResponse(ChipId, TypeResponse)
                 
-         self.write({
-               'status': 'success',
-               'response': Response
-         })    
+         self.write({'status': 'success', 'response': Response})  
+           
       except asyncio.TimeoutError:
          self.set_status(408)
          self.write({'error': 'Timeout waiting for response'})
