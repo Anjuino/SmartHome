@@ -12,6 +12,7 @@
     <form id="myForm">
         <button type="button" onclick="sendJsonData()">Отправить команду</button>
         <button type="button" onclick="sendJsonData1()">Состояние</button>
+        <button type="button" onclick="sendJsonData2()">Прошить</button>
     </form>
 
     <script>
@@ -40,6 +41,24 @@
             const data = {
                 ChipId: 13464106,
                 TypeMesseage: "GetState"
+            };
+            
+            fetch('/Device/SendMesseage', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(data => console.log('Success:', data))
+            .catch(error => console.error('Error:', error));
+        }
+
+        function sendJsonData2() {
+            const data = {
+                ChipId: 13464106,
+                TypeMesseage: "StartOTA"
             };
             
             fetch('/Device/SendMesseage', {
