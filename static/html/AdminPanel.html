@@ -11,13 +11,35 @@
 
     <form id="myForm">
         <button type="button" onclick="sendJsonData()">Отправить команду</button>
+        <button type="button" onclick="sendJsonData1()">Состояние</button>
     </form>
 
     <script>
         function sendJsonData() {
             const data = {
                 ChipId: 13464106,
-                TypeMesseage: "StartOTA"
+                TypeMesseage: "UpdateZoneName",
+                NumZone: 1,
+                OldName: "Зона 1",
+                NewName: "Zone 1"
+            };
+            
+            fetch('/Device/SendMesseage', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(data => console.log('Success:', data))
+            .catch(error => console.error('Error:', error));
+        }
+
+        function sendJsonData1() {
+            const data = {
+                ChipId: 13464106,
+                TypeMesseage: "GetState"
             };
             
             fetch('/Device/SendMesseage', {

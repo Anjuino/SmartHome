@@ -23,6 +23,15 @@ class HTTPHandlerClient(tornado.web.RequestHandler):
          if (TypeMesseage == "StartOTA"):
             TypeResponse = "GetFirmware"
             Request = {"TypeMesseage": TypeMesseage}
+
+         if (TypeMesseage == "UpdateZoneName"):
+            TypeResponse = "UpdateZoneName"
+            Request = {
+               "TypeMesseage": TypeMesseage,
+               "NumZone": JsonData['NumZone'],
+               "OldName": JsonData['OldName'],
+               "NewName": JsonData['NewName']
+            }   
             
          # Находим нужное устройство
          Device = None
