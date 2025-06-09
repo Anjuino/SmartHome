@@ -1,77 +1,537 @@
 <!DOCTYPE html>
-<html>
+<html lang="ru">
 <head>
-    <title>OTA</title>
+   <meta charset="UTF-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <title>Управление устройствами</title>
+   <style>
+      body {
+         font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+         margin: 0;
+         padding: 20px;
+         background-color: #2a2a2a;
+         color: #333;
+      }
+      .container {
+         display: flex;
+         gap: 20px;
+         max-width: 1200px;
+         margin: 0 auto;
+         align-items: flex-start;
+      }
+      .card {
+         flex: 1;
+         border: 2px solid #ffffff;
+         padding: 25px;
+         border-radius: 10px;
+         background-color: white;
+         box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      }
+      .result-panel {
+         flex: 1;
+         border: 2px solid #ffffff;
+         padding: 25px;
+         border-radius: 10px;
+         background-color: white;
+         box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+         display: flex;
+         flex-direction: column;
+      }
+      .form-group {
+         margin-bottom: 20px;
+      }
+      label {
+         display: block;
+         margin-bottom: 8px;
+         font-weight: 600;
+         color: #495057;
+      }
+      select {
+         padding: 10px 12px;
+         border: 1px solid #ced4da;
+         border-radius: 6px;
+         width: 100%;
+         max-width: 400px;
+         background-color: #fff;
+         font-size: 14px;
+         color: #495057;
+         transition: border-color 0.15s ease-in-out;
+      }
+      select:focus {
+         border-color: #80bdff;
+         outline: 0;
+         box-shadow: 0 0 0 0.2rem rgba(0,123,255,0.25);
+      }
+      button {
+         padding: 10px 20px;
+         background-color: #007bff;
+         color: white;
+         border: none;
+         border-radius: 6px;
+         cursor: pointer;
+         font-size: 14px;
+         font-weight: 500;
+         transition: background-color 0.15s ease-in-out;
+         margin-top: 10px;
+      }
+      button:hover {
+         background-color: #0069d9;
+      }
+      .refresh-btn {
+         margin-bottom: 15px;
+      }
+
+      #responseOutput {
+         white-space: pre-wrap;
+         font-family: 'Consolas', 'Monaco', monospace;
+         color: #f8f9fa;
+         background: #020208;
+         padding: 15px;
+         border-radius: 6px;
+         flex-grow: 1;
+         overflow-y: auto;
+         margin-bottom: 15px;
+         font-size: 13px;
+         line-height: 1.5;
+      }
+      #responseMeta {
+         font-size: 13px;
+         color: #6c757d;
+         padding: 10px 0;
+         border-top: 1px solid #e9ecef;
+      }
+      #customCommandPanel {
+         margin-top: 20px;
+         display: none;
+      }
+      #customCommandInput {
+         width: 100%;
+         min-height: 120px;
+         font-family: 'Consolas', 'Monaco', monospace;
+         margin-bottom: 10px;
+         padding: 12px;
+         border: 1px solid #ced4da;
+         border-radius: 6px;
+         resize: vertical;
+         font-size: 13px;
+         line-height: 1.5;
+         box-sizing: border-box;
+      }
+      #customCommandInput:focus {
+         border-color: #80bdff;
+         outline: 0;
+         box-shadow: 0 0 0 0.2rem rgba(0,123,255,0.25);
+      }
+      .command-panel {
+         margin-top: 20px;
+      }
+      h1 {
+         color: #212529;
+         margin-top: 0;
+      }
+      h3 {
+         color: #212529;
+         margin-top: 0;
+         margin-bottom: 15px;
+      }
+      h4 {
+         color: #343a40;
+         margin-top: 0;
+         margin-bottom: 10px;
+         font-size: 16px;
+      }
+      #firmwareUploadPanel {
+         margin-top: 20px;
+         display: none;
+      }
+      #firmwareFile {
+         margin-bottom: 10px;
+      }
+      .progress-container {
+         width: 100%;
+         height: 20px;
+         border-radius: 10px;
+      }
+      .progress-bar {
+         height: 100%;
+         background-color: #15cc00;
+         transition: width 0.3s ease;
+      }
+      .progress-text {
+         font-size: 18px;
+         color:  #ffffff;
+         text-align: center;
+         margin-top: 10px;
+      }
+      .progress-status {
+         font-size: 18px;
+         color: #ffffff;
+         margin-top: 5px;
+         font-weight: bold;
+      }
+      @media (max-width: 768px) {
+         .container {
+            flex-direction: column;
+            align-items: stretch;
+         }
+      }
+   </style>
 </head>
-<body>
-    <form action="/DeviceSetting/OTA" method="post" enctype="multipart/form-data">
-        <input type="file" name="firmware" accept=".bin">
-        <input type="submit" value="Отправить в контроллер">
-    </form>
-    <br><br>
-    <form id="myForm">
-        <button type="button" onclick="sendJsonData()">Отправить команду</button>
-        <button type="button" onclick="sendJsonData1()">Состояние</button>
-        <button type="button" onclick="sendJsonData2()">Прошить</button>
-    </form>
+<body class="theme-default">
+   <div class="container">
+      <div class="card">
+         <header>
+            <h1>Управление устройствами</h1>
+            <button class="refresh-btn" onclick="refreshDeviceList()">Обновить список устройств</button>
+         </header>
 
-    <script>
-        function sendJsonData() {
+         <div class="form-group">
+            <label for="deviceDropdown">Выберите устройство:</label>
+            <select id="deviceDropdown">
+               <option value="">--Загрузка устройств--</option>
+            </select>
+         </div>
+         
+         <div id="commandPanel" class="command-panel">
+            <h3>Доступные команды:</h3>
+            <select id="commandSelect" class="command-dropdown" onchange="handleCommandChange()">
+               <option value="" selected disabled>Выберите команду...</option>
+               <option value="GetState">Получить состояние</option>
+               <!--<option value="StartOTA">Прошить контроллер</option>-->
+               <option value="Firmware">Загрузить прошивку</option>
+               <option value="UserInput">Ввести вручную</option>
+           </select>
+            <button id="sendCommandBtn" onclick="sendSelectedCommand()">Отправить</button>
+            
+            <div id="customCommandPanel">
+               <h4>Ввод (JSON формат):</h4>
+               <textarea id="customCommandInput" placeholder= '{
+                                                                  "TypeMesseage": "YourCommand",
+                                                                  "Param1": "Value1",
+                                                                  "Param2": 123
+                                                               }'>
+               </textarea>
+            </div>
+
+            <div id="firmwareUploadPanel">
+               <h4>Выберите файл прошивки:</h4>
+               <input type="file" id="firmwareFile" accept=".bin">
+               <button onclick="uploadFirmware()">Загрузить</button>
+            </div>
+         </div>
+      </div>
+
+      <div class="result-panel">
+         <h1>Результат выполнения команды:</h1>
+         <div id="responseOutput"></div>
+         <div id="responseMeta"></div>
+      </div>
+   </div>
+
+   <script>
+      let selectedDevice = null;
+      let progressInterval = null;
+      
+      // Загрузка списка устройств при открытии страницы
+      document.addEventListener('DOMContentLoaded', function() {
+         document.getElementById('commandPanel').style.display = 'none';
+         document.getElementById('responseOutput').style.display = 'none';
+         document.getElementById('responseMeta').style.display = 'none';
+         getDeviceList();
+      });
+
+      // Функция обновления списка устройств
+      function refreshDeviceList() {
+         document.getElementById('deviceDropdown').innerHTML = '<option value="">--Обновление списка--</option>';
+         document.getElementById('commandPanel').style.display = 'none';
+         document.getElementById('responseOutput').style.display = 'none';
+         document.getElementById('responseMeta').style.display = 'none';
+         getDeviceList();
+      }
+
+      // Обработчик изменения выбранной команды
+      function handleCommandChange() {
+         const command = document.getElementById('commandSelect').value;
+         const customPanel = document.getElementById('customCommandPanel');
+         const firmwarePanel = document.getElementById('firmwareUploadPanel');
+         const sendBtn = document.getElementById('sendCommandBtn');
+         
+         customPanel.style.display = command === "UserInput" ? 'block' : 'none';
+         firmwarePanel.style.display = command === "Firmware" ? 'block' : 'none';
+         sendBtn.style.display = command === "Firmware" ? 'none' : 'block';
+      }
+
+      // Функция для получения списка устройств
+      function getDeviceList() {
+         const data = {
+            TypeMesseage: "GetListDevice"
+         };
+         
+         fetch('/Admin', {
+            method: 'POST',
+            headers: {
+               'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data)
+         })
+         .then(response => response.json())
+         .then(data => {
+            updateDeviceDropdown(data);
+         })
+         .catch(error => {
+            console.error('Error:', error);
+            document.getElementById('deviceDropdown').innerHTML = '<option value="">Ошибка загрузки устройств</option>';
+         });
+      }
+      
+      // Обновление выпадающего списка устройств
+      function updateDeviceDropdown(devices) {
+         const dropdown = document.getElementById('deviceDropdown');
+         dropdown.innerHTML = '<option value="">-- Выберите устройство --</option>';
+         
+         if (devices && devices.length > 0) {
+            devices.forEach(device => {
+               const option = document.createElement('option');
+               option.value = device.ChipId;
+               option.textContent = device.DeviceName;
+               dropdown.appendChild(option);
+            });
+         } else {
+            dropdown.innerHTML = '<option value="">Нет доступных устройств</option>';
+         }
+         
+         // Обработчик выбора устройства
+         dropdown.addEventListener('change', function() {
+            if (this.value) {
+               selectedDevice = parseInt(this.value);
+               document.getElementById('commandPanel').style.display = 'block';
+               document.getElementById('commandSelect').value = "";
+               document.getElementById('customCommandPanel').style.display = 'none';
+               document.getElementById('firmwareUploadPanel').style.display = 'none';
+               document.getElementById('sendCommandBtn').style.display = 'block';
+            } else {
+               selectedDevice = null;
+               document.getElementById('responseOutput').style.display = 'none';
+               document.getElementById('responseMeta').style.display = 'none';
+               document.getElementById('commandPanel').style.display = 'none';
+            }
+         });
+      }
+      
+      function sendSelectedCommand() {
+         const select = document.getElementById('commandSelect');
+         const command = select.value;
+         
+         if (!command) {
+            alert("Выберите команду!");
+            return;
+         }
+         
+         // Отправка команды
+         console.log("Отправка команды:", command);
+         sendCommand(command);
+      }
+
+      // Функция загрузки прошивки
+      function uploadFirmware() {
+         if (!selectedDevice) {
+            alert("Сначала выберите устройство!");
+            return;
+         }
+         
+         const fileInput = document.getElementById('firmwareFile');
+         if (!fileInput.files || fileInput.files.length === 0) {
+            alert("Выберите файл прошивки!");
+            return;
+         }
+         
+         const file = fileInput.files[0];
+         if (!file.name.endsWith('.bin')) {
+            alert("Формат файла должен быть .bin!");
+            return;
+         }
+         
+         // Создаем элемент для отображения прогресса
+         const progressHTML = `
+            <div id="firmwareProgress">
+               <div class="progress-container">
+                  <div class="progress-bar" style="width: 0%"></div>
+               </div>
+               <div class="progress-text">0%</div>
+               <div class="progress-status">Подготовка к обновлению...</div>
+            </div>
+         `;
+         
+         document.getElementById('responseOutput').innerHTML = progressHTML;
+         document.getElementById('responseOutput').style.display = 'block';
+         document.getElementById('responseMeta').style.display = 'none';
+         
+         const formData = new FormData();
+         formData.append('firmware', file);
+         formData.append('ChipId', selectedDevice.toString());
+         
+         fetch('/Device/OTA', {
+            method: 'POST',
+            body: formData
+         })
+         .then(response => response.text())
+         .then(text => {
+            try {
+               const data = JSON.parse(text);
+               if (data.status === 'success') {
+                  // Начинаем отслеживание прогресса
+                  startProgressPolling(selectedDevice);
+               }
+            } catch (e) {
+               console.error('Error parsing response:', e);
+            }
+         })
+         .catch(error => {
+            console.error('Upload error:', error);
+            clearInterval(progressInterval);
+            document.querySelector('.progress-status').textContent = `Ошибка: ${error.message}`;
+         });
+      }
+
+      // Функция для опроса статуса прошивки
+      function startProgressPolling(chipId) {
+         // Очищаем предыдущий интервал, если он был
+         if (progressInterval) {
+            clearInterval(progressInterval);
+         }
+         
+         // Опрашиваем сервер каждую секунду
+         progressInterval = setInterval(() => {
             const data = {
-                ChipId: 13464106,
-                TypeMesseage: "UpdateZoneName",
-                NumZone: 1,
-                OldName: "Zone Def",
-                NewName: "Zone 1"
+               TypeMesseage: "GetProgress",
+               ChipId: chipId
             };
             
-            fetch('/Device/SendMesseage', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(data)
+            fetch('/Admin', {
+               method: 'POST',
+               headers: {
+                  'Content-Type': 'application/json',
+               },
+               body: JSON.stringify(data)
             })
             .then(response => response.json())
-            .then(data => console.log('Success:', data))
-            .catch(error => console.error('Error:', error));
-        }
+            .then(data => {
+               const progress = data.progress || 0;
+               const status = data.status || 'unknown';
+               
+               // Обновляем UI
+               if (document.querySelector('.progress-bar')) {
+                  document.querySelector('.progress-bar').style.width = `${progress}%`;
+                  document.querySelector('.progress-text').textContent = `${progress}%`;
+                  
+                  let statusText = "В процессе...";
+                  if (status === 'completed') {
+                     statusText = "Обновление завершено";
+                     clearInterval(progressInterval);
+                  } else if (status === 'failed') {
+                     statusText = "Ошибка обновления";
+                     clearInterval(progressInterval);
+                  } else if (status === 'error') {
+                     statusText = `Ошибка: ${data.message || 'неизвестная ошибка'}`;
+                     clearInterval(progressInterval);
+                  }
+                  
+                  document.querySelector('.progress-status').textContent = statusText;
+               }
+            })
+            .catch(error => {
+               console.error('Error fetching progress:', error);
+               if (document.querySelector('.progress-status')) {
+                  document.querySelector('.progress-status').textContent = `Ошибка получения прогресса: ${error.message}`;
+               }
+            });
+         }, 2000);
+      }
 
-        function sendJsonData1() {
-            const data = {
-                ChipId: 13464106,
-                TypeMesseage: "GetState"
-            };
-            
-            fetch('/Device/SendMesseage', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(data)
-            })
-            .then(response => response.json())
-            .then(data => console.log('Success:', data))
-            .catch(error => console.error('Error:', error));
-        }
+      // Общая функция отправки команд
+      function sendCommand(commandType) {
+         if (!selectedDevice) {
+            alert("Сначала выберите устройство!");
+            return;
+         }
+         
+         const startTime = new Date(); // Засекаем время начала запроса
+         let data = {};
+         let requestData = {};
 
-        function sendJsonData2() {
-            const data = {
-                ChipId: 13464106,
-                TypeMesseage: "StartOTA"
+         var EndPoint = '/Device/SendMesseage';
+
+         if (commandType === "UserInput") {
+            try {
+               const customInput = document.getElementById('customCommandInput').value;
+               if (!customInput.trim()) {
+                  alert("Введите команду в JSON формате!");
+                  return;
+               }
+               
+               data = JSON.parse(customInput);
+               // Добавляем ChipId, если его нет в введенных данных
+               if (!data.ChipId) data.ChipId = selectedDevice;
+
+               requestData = data;
+
+               if (data.TypeMesseage === "UpdateNameController") EndPoint = '/Admin'
+
+            } catch (e) {
+               alert("Ошибка в формате JSON: " + e.message);
+               return;
+            }
+         }
+         else {
+            requestData = {
+               ChipId: selectedDevice,
+               TypeMesseage: commandType
             };
+         }
+         
+         fetch(EndPoint, {
+            method: 'POST',
+            headers: {
+               'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(requestData)
+         })
+         .then(response => response.json())
+         .then(data => {
+            const endTime = new Date(); // Засекаем время получения ответа
+            const duration = endTime - startTime; // Вычисляем длительность
             
-            fetch('/Device/SendMesseage', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(data)
-            })
-            .then(response => response.json())
-            .then(data => console.log('Success:', data))
-            .catch(error => console.error('Error:', error));
-        }
-    </script>
+            console.log('Success:', data);
+            displayResponse(data, duration);
+         })
+         .catch(error => {
+            const endTime = new Date();
+            const duration = endTime - startTime;
+            
+            console.error('Error:', error);
+            displayResponse({error: error.message}, duration);
+         });
+      }
+
+      // Функция для отображения ответа
+      function displayResponse(data, duration) {
+         document.getElementById('responseMeta').style.display = 'block';
+         document.getElementById('responseOutput').style.display = 'block';
+         const output = document.getElementById('responseOutput');
+         const meta = document.getElementById('responseMeta');
+         
+         output.textContent = JSON.stringify(data, null, 2);
+         
+         // Форматируем дату и время
+         const now = new Date();
+         const timeString = now.toLocaleTimeString();
+         const dateString = now.toLocaleDateString();
+         
+         meta.innerHTML = `
+            <div>Время выполнения: ${duration} мс</div>
+            <div>Запрос выполнен: ${dateString} в ${timeString}</div>
+         `;
+      }
+   </script>
 </body>
 </html>

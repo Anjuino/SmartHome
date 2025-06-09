@@ -16,10 +16,6 @@ class HTTPHandlerClient(tornado.web.RequestHandler):
             TypeResponse = "State"
             Request = {"TypeMesseage": TypeMesseage}
 
-         if (TypeMesseage == "StartOTA"):
-            TypeResponse = "GetFirmware"
-            Request = {"TypeMesseage": TypeMesseage}
-
          if (TypeMesseage == "UpdateZoneName"):
             TypeResponse = "UpdateZoneName"
             Request = {
@@ -40,13 +36,15 @@ class HTTPHandlerClient(tornado.web.RequestHandler):
                break
          
          if not Device: raise Exception("Устройство не найдено или не подключено")
-         
+                  
          # Отправляем запрос устройству
          await Device.write_message(json.dumps(Request))
-
+         
          # Если ждать ответ не надо, то отдадим в web ответ сразу
-         if not Request: self.write({'status': 'success'})    
-            
+         if not TypeResponse: 
+            self.write({'status': 'success'})
+            return    
+         
          # Ждем ответ   
          Response = await Device.WaitResponse(ChipId, TypeResponse)
                 

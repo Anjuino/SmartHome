@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Управление устройствами</title>
+    <style>
+        :root {
+            --primary: #4361ee;
+            --primary-dark: #3a0ca3;
+            --secondary: #4895ef;
+            --accent: #f72585;
+            --light: #f8f9fa;
+            --dark: #212529;
+            --gray: #adb5bd;
+            --success: #4cc9f0;
+            --warning: #f8961e;
+            --error: #ef233c;
+            --radius: 12px;
+            --shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            --bg-gradient: linear-gradient(135deg, #f5f7fa 0%, #e4e8f0 100%);
+        }
+
+        /* Темная тема */
+        .theme-dark {
+            --primary: #7209b7;
+            --primary-dark: #560bad;
+            --secondary: #b5179e;
+            --accent: #f72585;
+            --light: #212529;
+            --dark: #f8f9fa;
+            --gray: #495057;
+            --success: #4cc9f0;
+            --warning: #f8961e;
+            --error: #ef233c;
+            --bg-gradient: linear-gradient(135deg, #212529 0%, #343a40 100%);
+        }
+
+        /* Зеленая тема */
+        .theme-green {
+            --primary: #2b9348;
+            --primary-dark: #007f5f;
+            --secondary: #55a630;
+            --accent: #80b918;
+            --light: #f8f9fa;
+            --dark: #212529;
+            --gray: #adb5bd;
+            --success: #4cc9f0;
+            --warning: #f8961e;
+            --error: #ef233c;
+            --bg-gradient: linear-gradient(135deg, #f5f7fa 0%, #e4e8f0 100%);
+        }
+
+        /* Оранжевая тема */
+        .theme-orange {
+            --primary: #f77f00;
+            --primary-dark: #d62828;
+            --secondary: #fcbf49;
+            --accent: #eae2b7;
+            --light: #f8f9fa;
+            --dark: #212529;
+            --gray: #adb5bd;
+            --success: #4cc9f0;
+            --warning: #f8961e;
+            --error: #ef233c;
+            --bg-gradient: linear-gradient(135deg, #f5f7fa 0%, #e4e8f0 100%);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        body {
+            background: var(--bg-gradient);
+            color: var(--dark);
+            line-height: 1.6;
+            min-height: 100vh;
+            padding: 2rem;
+            transition: var(--transition);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 3rem;
+            animation: fadeIn 0.6s ease-out;
+            position: relative;
+        }
+
+        h1 {
+            font-size: 2.8rem;
+            font-weight: 800;
+            background: linear-gradient(90deg, #ffffff, #ffffff);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin-bottom: 1rem;
+            letter-spacing: -0.5px;
+        }
+
+        h2 {
+            font-size: 1.8rem;
+            color: var(--primary-dark);
+            margin-bottom: 1.5rem;
+            position: relative;
+            display: inline-block;
+        }
+
+        h2::after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 0;
+            width: 60px;
+            height: 4px;
+            background: var(--accent);
+            border-radius: 2px;
+        }
+
+        h3 {
+            font-size: 1.4rem;
+            color: var(--primary-dark);
+            margin-bottom: 1.2rem;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            transition: var(--transition);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(10px);
+            animation: slideUp 0.5s ease-out;
+        }
+
+        .theme-dark .card {
+            background: rgba(33, 37, 41, 0.9);
+            border: 1px solid rgba(33, 37, 41, 0.3);
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.6rem;
+            font-weight: 600;
+            color: var(--primary-dark);
+            font-size: 0.95rem;
+        }
+
+        select, input, button {
+            width: 100%;
+            padding: 0.8rem 1.2rem;
+            border: 2px solid var(--gray);
+            border-radius: var(--radius);
+            font-size: 1rem;
+            transition: var(--transition);
+            background-color: white;
+            color: var(--dark);
+        }
+
+        .theme-dark select,
+        .theme-dark input {
+            background-color: var(--light);
+            border-color: var(--gray);
+            color: var(--dark);
+        }
+
+        select:focus, input:focus {
+            outline: none;
+            border-color: var(--secondary);
+            box-shadow: 0 0 0 3px rgba(72, 149, 239, 0.2);
+        }
+
+        button {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            margin-top: 0.5rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        button::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+            opacity: 0;
+            transition: var(--transition);
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(67, 97, 238, 0.3);
+        }
+
+        button:hover::after {
+            opacity: 1;
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button span {
+            position: relative;
+            z-index: 1;
+        }
+
+        .command-panel {
+            margin-top: 2rem;
+            padding: 1.5rem;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            display: none;
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        .theme-dark .command-panel {
+            background: rgba(33, 37, 41, 0.8);
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin-bottom: 1.5rem;
+        }
+
+        .btn-group button {
+            flex: 1 1 200px;
+        }
+
+        #renameForm {
+            background: rgba(248, 249, 250, 0.8);
+            padding: 1.5rem;
+            border-radius: var(--radius);
+            margin-top: 1.5rem;
+            display: none;
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        .theme-dark #renameForm {
+            background: rgba(33, 37, 41, 0.8);
+        }
+
+        .rename-fields {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        hr {
+            border: none;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--gray), transparent);
+            margin: 2.5rem 0;
+        }
+
+        .file-upload {
+            position: relative;
+            margin-bottom: 1.5rem;
+        }
+
+        .file-upload input[type="file"] {
+            position: absolute;
+            left: 0;
+            top: 0;
+            opacity: 0;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+        }
+
+        .file-upload-label {
+            display: block;
+            padding: 1.5rem;
+            background: white;
+            border: 2px dashed var(--gray);
+            border-radius: var(--radius);
+            text-align: center;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .theme-dark .file-upload-label {
+            background: var(--light);
+            border-color: var(--gray);
+        }
+
+        .file-upload-label:hover {
+            border-color: var(--secondary);
+            background: rgba(72, 149, 239, 0.05);
+        }
+
+        .file-name {
+            margin-top: 0.5rem;
+            font-size: 0.9rem;
+            color: var(--primary-dark);
+            font-weight: 500;
+        }
+
+        .notification {
+            position: fixed;
+            top: 2rem;
+            right: 2rem;
+            padding: 1rem 1.5rem;
+            border-radius: var(--radius);
+            color: white;
+            font-weight: 500;
+            box-shadow: var(--shadow);
+            z-index: 1000;
+            transform: translateX(200%);
+            animation: slideIn 0.3s forwards, fadeOut 0.3s forwards 2.7s;
+        }
+
+        .success {
+            background: var(--success);
+        }
+
+        .error {
+            background: var(--error);
+        }
+
+        .warning {
+            background: var(--warning);
+        }
+
+        /* Стили для переключателя тем */
+        .theme-switcher {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            display: flex;
+            gap: 10px;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 10px;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+        }
+
+        .theme-dark .theme-switcher {
+            background: rgba(33, 37, 41, 0.9);
+        }
+
+        .theme-btn {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            border: 2px solid var(--gray);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .theme-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .theme-btn.active {
+            border-color: var(--accent);
+            transform: scale(1.1);
+        }
+
+        .theme-default {
+            background: linear-gradient(135deg, #4361ee, #4895ef);
+        }
+
+        .theme-dark-btn {
+            background: linear-gradient(135deg, #560bad, #b5179e);
+        }
+
+        .theme-green {
+            background: linear-gradient(135deg, #2b9348, #55a630);
+        }
+
+        .theme-orange {
+            background: linear-gradient(135deg, #f77f00, #fcbf49);
+        }
+
+        @keyframes slideIn {
+            to { transform: translateX(0); }
+        }
+
+        @keyframes fadeOut {
+            to { opacity: 0; }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideUp {
+            from { 
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to { 
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .rename-fields {
+                grid-template-columns: 1fr;
+            }
+            
+            .btn-group button {
+                flex: 1 1 100%;
+            }
+            
+            .card {
+                padding: 1.5rem;
+            }
+
+            .theme-switcher {
+                top: 10px;
+                right: 10px;
+                padding: 8px;
+            }
+        }
+    </style>
+</head>
+<body class="theme-default">
+    <!-- Переключатель тем -->
+    <div class="theme-switcher">
+        <div class="theme-btn theme-default active" onclick="setTheme('default')" title="Стандартная тема"></div>
+        <div class="theme-btn theme-dark-btn" onclick="setTheme('dark')" title="Темная тема"></div>
+        <div class="theme-btn theme-green" onclick="setTheme('green')" title="Зеленая тема"></div>
+        <div class="theme-btn theme-orange" onclick="setTheme('orange')" title="Оранжевая тема"></div>
+    </div>
+
+    <div class="container">
+        <header>
+            <h1>Управление устройствами</h1>
+            <p>Панель управления подключенными устройствами</p>
+        </header>
+
+        <div class="card">
+            <div class="form-group">
+                <label for="deviceDropdown">Выберите устройство:</label>
+                <select id="deviceDropdown">
+                    <option value="">-- Загрузка устройств... --</option>
+                </select>
+            </div>
+            
+            <div id="commandPanel" class="command-panel">
+                <h3>Доступные команды:</h3>
+                <div class="btn-group">
+                    <button type="button" onclick="sendCommand('GetState')"><span>Получить состояние</span></button>
+                    <button type="button" onclick="sendCommand('StartOTA')"><span>Прошить устройство</span></button>
+                    <button type="button" onclick="showRenameForm()"><span>Переименовать зону</span></button>
+                </div>
+                
+                <div id="renameForm">
+                    <div class="rename-fields">
+                        <div class="form-group">
+                            <label for="zoneNum">Номер зоны (EEPROM адрес):</label>
+                            <input type="number" id="zoneNum" placeholder="Введите номер зоны" min="1">
+                        </div>
+                        <div class="form-group">
+                            <label for="oldName">Старое название:</label>
+                            <input type="text" id="oldName" placeholder="Введите старое название">
+                        </div>
+                        <div class="form-group">
+                            <label for="newName">Новое название:</label>
+                            <input type="text" id="newName" placeholder="Введите новое название">
+                        </div>
+                    </div>
+                    <button type="button" onclick="sendRenameCommand()"><span>Применить переименование</span></button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h2>Обновление прошивки</h2>
+            <form action="/DeviceSetting/OTA" method="post" enctype="multipart/form-data">
+                <div class="file-upload">
+                    <label class="file-upload-label">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin-bottom: 0.5rem;">
+                            <path d="M21 15V19C21 20.1046 20.1046 21 19 21H5C3.89543 21 3 20.1046 3 19V15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M17 8L12 3L7 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M12 3V15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>0
+                        <br>
+                        Выберите файл прошивки (.bin)
+                        <input type="file" name="firmware" accept=".bin" onchange="updateFileName(this)">
+                    </label>
+                    <div id="fileName" class="file-name"></div>
+                </div>
+                <button type="submit"><span>Загрузить прошивку</span></button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Текущее выбранное устройство
+        let selectedDevice = null;
+        
+        // Загрузка списка устройств при открытии страницы
+        document.addEventListener('DOMContentLoaded', function() {
+            getDeviceList();
+            
+            // Проверяем сохраненную тему
+            const savedTheme = localStorage.getItem('theme') || 'default';
+            setTheme(savedTheme, false);
+        });
+        
+        // Функция для установки темы
+        function setTheme(themeName, saveToStorage = true) {
+            document.body.className = `theme-${themeName}`;
+            
+            // Обновляем активную кнопку темы
+            document.querySelectorAll('.theme-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.classList.contains(`theme-${themeName}-btn`) || 
+                    (themeName === 'default' && btn.classList.contains('theme-default'))) {
+                    btn.classList.add('active');
+                }
+            });
+            
+            // Сохраняем в localStorage
+            if (saveToStorage) {
+                localStorage.setItem('theme', themeName);
+            }
+        }
+        
+        // Функция для получения списка устройств
+        function getDeviceList() {
+            const data = {
+                TypeMesseage: "GetListDevice"
+            };
+            
+            fetch('/Admin', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(data => {
+                updateDeviceDropdown(data);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                document.getElementById('deviceDropdown').innerHTML = '<option value="">Ошибка загрузки устройств</option>';
+                showNotification('Ошибка загрузки списка устройств', 'error');
+            });
+        }
+        
+        // Обновление выпадающего списка устройств
+        function updateDeviceDropdown(devices) {
+            const dropdown = document.getElementById('deviceDropdown');
+            dropdown.innerHTML = '<option value="">-- Выберите устройство --</option>';
+            
+            if (devices && devices.length > 0) {
+                devices.forEach(device => {
+                    const option = document.createElement('option');
+                    option.value = device.ChipId;
+                    option.textContent = device.DeviceName;
+                    dropdown.appendChild(option);
+                });
+                showNotification('Список устройств загружен', 'success');
+            } else {
+                dropdown.innerHTML = '<option value="">Нет доступных устройств</option>';
+                showNotification('Нет доступных устройств', 'warning');
+            }
+            
+            // Обработчик выбора устройства
+            dropdown.addEventListener('change', function() {
+                if (this.value) {
+                    selectedDevice = parseInt(this.value);
+                    document.getElementById('commandPanel').style.display = 'block';
+                } else {
+                    selectedDevice = null;
+                    document.getElementById('commandPanel').style.display = 'none';
+                    document.getElementById('renameForm').style.display = 'none';
+                }
+            });
+        }
+        
+        // Общая функция отправки команд
+        function sendCommand(commandType, additionalData = {}) {
+            if (!selectedDevice) {
+                showNotification('Выберите устройство!', 'warning');
+                return;
+            }
+            
+            const data = {
+                ChipId: selectedDevice,
+                TypeMesseage: commandType,
+                ...additionalData
+            };
+            
+            fetch('/Device/SendMesseage', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Success:', data);
+                showNotification(`Команда "${commandType}" выполнена успешно!`, 'success');
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showNotification('Ошибка при отправке команды!', 'error');
+            });
+        }
+        
+        // Показать форму переименования
+        function showRenameForm() {
+            document.getElementById('renameForm').style.display = 'block';
+        }
+        
+        // Отправить команду переименования
+        function sendRenameCommand() {
+            const zoneNum = document.getElementById('zoneNum').value;
+            const oldName = document.getElementById('oldName').value;
+            const newName = document.getElementById('newName').value;
+            
+            if (!zoneNum || !oldName || !newName) {
+                showNotification('Заполните все поля!', 'warning');
+                return;
+            }
+            
+            sendCommand('UpdateZoneName', {
+                NumZone: parseInt(zoneNum),
+                OldName: oldName,
+                NewName: newName
+            });
+        }
+        
+        // Показать имя выбранного файла
+        function updateFileName(input) {
+            const fileName = input.files[0] ? input.files[0].name : 'Файл не выбран';
+            document.getElementById('fileName').textContent = fileName;
+        }
+        
+        // Показать уведомление
+        function showNotification(message, type) {
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
+        }
+    </script>
+</body>
+</html>

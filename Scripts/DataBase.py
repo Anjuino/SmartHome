@@ -46,6 +46,13 @@ async def GetControllerName(ChipId):
       result = await cursor.fetchone()
    return result[0]
 
+# Обновить имя контроллера по ChipId
+async def UpdateControllerName(ChipId, new_name):
+   async with aiosqlite.connect(PATHDATABASE) as db:
+      await db.execute('UPDATE Controllers SET DeviceName = ? WHERE ChipId = ?', (new_name, ChipId))
+      await db.commit()
+
+
 # Записать контроллер в базу
 async def SetController(ChipId, Token):
    TokenIs = False
