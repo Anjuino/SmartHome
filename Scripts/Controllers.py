@@ -15,7 +15,6 @@ class WebSocketESP(tornado.websocket.WebSocketHandler):
    ResponseBuffer = {}  # Добавляем словарь для ожидающих ответов
     
    async def WaitResponse(self, chip_id, response_type, timeout=5):
-      """Ожидает ответ определенного типа от устройства"""
       future = asyncio.Future()
       key = (chip_id, response_type)
       self.ResponseBuffer[key] = future
@@ -31,14 +30,14 @@ class WebSocketESP(tornado.websocket.WebSocketHandler):
 
    async def open(self):
       AuthHeader = self.request.headers.get("Authorization")
-      #print("Authorization header:", auth_header)
+      print("Authorization header:", AuthHeader)
 
       if AuthHeader:
          try:
-            AuthDecoded = base64.b64decode(AuthHeader).decode("utf-8")
+            AuthDecoded = base64.b64decode(AuthHeader.split()[1]).decode("utf-8")
             username, password = AuthDecoded.split(':')
-            #print("Контроллер:", username)
-            #print("Пароль:", password)
+            print("Контроллер:", username)
+            print("Пароль:", password)
 
             if username == USERNAME and password == SECRET_KEY: print("Соединение открыто")
             else:
