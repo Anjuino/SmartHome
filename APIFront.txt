@@ -1,0 +1,76 @@
+/Device/SendMesseage
+############################################ Команды для лент
+Эффекты    (Mode)
+RAINBOW     1
+RUNSTR      2
+STROBE      3
+RANDOMLIGHT 4
+SPARK       5
+FADE        6
+RUNLIGHT    7
+CHAOS       8
+RUNSTR2     9
+
+STATIC     249
+OFF        250
+
+Установить режим работы
+{
+"TypeMesseage": "SetStateToLed",
+"Mode": 3,
+"ColorR" : 255,
+"ColorG" : 255,
+"ColorB" : 255
+}
+
+
+от 0 до 20 (вроде как..)
+{
+"TypeMesseage": "SetSpeedToLed",
+"Speed": 15
+}
+
+0 до 100
+{
+"TypeMesseage": "SetBrightnessToLed",
+"Brightness": 90
+}
+
+Получить настройки ленты
+{
+"TypeMesseage": "GetSettingLed"
+}
+
+IsDetectedMove - добавлять если у контроллера есть датчик движения. В принципе можно слать всегда, контроллер уже сам разберется как ему обрабоать это
+Обновить настройки ленты
+{
+"TypeMesseage": "UpdateSettingLed",
+"LedCount": 100,
+"IsDetectedMove": false
+}
+
+############################################ Команды для телеметрии
+Обновить имя зоны (возможно буду убирать)
+Номер зоны от 1 до 5
+Старое имя брать из текущего состояния.
+{
+"TypeMesseage": "UpdateZoneName",
+"NumZone": 1,
+"OldName": "OldName",
+"NewName": "NewName"
+}
+
+############################################ Общие команды
+/Admin
+Обновить имя контроллера
+{
+"TypeMesseage": "UpdateNameController",
+"NewName": "Подсветка"
+}
+
+/Device/SendMesseage
+{
+"TypeMesseage": "GetState"
+}
+
+
