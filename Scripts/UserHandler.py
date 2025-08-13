@@ -3,6 +3,8 @@ import Controllers
 import json
 import asyncio
 
+#### Сделать потом возможность разбора сообщений от контроллеров по типу устройства, чтобы не было как сейчас все в общей куче.
+
 class HTTPHandlerClient(tornado.web.RequestHandler):
    async def post(self):
       try:
@@ -12,10 +14,16 @@ class HTTPHandlerClient(tornado.web.RequestHandler):
 
          TypeResponse = None
          Request      = None
+
+         ### общие команды
          if (TypeMesseage == "GetState"): 
             TypeResponse = "State"
             Request = {"TypeMesseage": TypeMesseage}
 
+         if (TypeMesseage == "Reboot"):
+            Request = {"TypeMesseage": TypeMesseage}
+
+         ### команды для телеметрии
          if (TypeMesseage == "UpdateZoneName"):
             TypeResponse = "UpdateZoneName"
             Request = {
@@ -23,10 +31,49 @@ class HTTPHandlerClient(tornado.web.RequestHandler):
                "NumZone": JsonData['NumZone'],
                "OldName": JsonData['OldName'],
                "NewName": JsonData['NewName']
-            } 
+            }
 
-         if (TypeMesseage == "Reboot"):
-            Request = {"TypeMesseage": TypeMesseage}
+         ### команды для контроллеров лент
+         if (TypeMesseage == "GetSettingLed"):
+            TypeResponse = "LedSetting"
+            Request = {
+               "TypeMesseage": TypeMesseage,
+            }
+
+         if (TypeMesseage == "UpdateSettingLed"):
+            IsDetectedMove = JsonData.get('IsDetectedMove')
+            if IsDetectedMove:
+               Request = {
+                  "TypeMesseage": TypeMesseage,
+                  "LedCount": JsonData['LedCount'],
+                  "IsDetectedMove": JsonData['IsDetectedMove']
+               }
+            else:
+               Request = {
+                  "TypeMesseage": TypeMesseage,
+                  "LedCount": JsonData['LedCount']
+               }    
+            
+         if (TypeMesseage == "SetStateToLed"):
+            Request = {
+               "TypeMesseage": "SetState",
+               "Mode": JsonData['Mode'],
+               "ColorR": JsonData['ColorR'],
+               "ColorG": JsonData['ColorG'],
+               "ColorB": JsonData['ColorB'] 
+            }
+
+         if (TypeMesseage == "SetSpeedToLed"):
+            Request = {
+               "TypeMesseage": "SetSpeed",
+               "Speed": JsonData['Speed']
+            }
+
+         if (TypeMesseage == "SetBrightnessToLed"):
+            Request = {
+               "TypeMesseage": "SetBrightness",
+               "Brightness": JsonData['Brightness']
+            }
 
          # Находим нужное устройство
          Device = None
