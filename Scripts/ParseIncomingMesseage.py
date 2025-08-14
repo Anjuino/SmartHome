@@ -28,14 +28,6 @@ async def SendFirmware(self):
          ChipId = client['ChipId']
          break
 
-   # Сохраняем оригинальные значения
-   CurrentPingInterval = self.ping_interval
-   CurrentPingTimeout  = self.ping_timeout
-   
-   # Временно отключаем пинги
-   self.ping_interval = None
-   self.ping_timeout = None
-   
    try:
       firmware_filename = f"firmware_{ChipId}.bin"
       firmware_path = os.path.join(firmware_filename)
@@ -62,14 +54,12 @@ async def SendFirmware(self):
                progress = round((totalReadSize / file_size) * 99)
                progress_status[ChipId] = {"progress": progress, "status": "in_progress"}
                print(f"\rПрогресс: {progress} %", end="", flush=True)
-               await asyncio.sleep(0.3)
+               await asyncio.sleep(0.2)
    except Exception as e:
       print(f"Ошибка: {e}")
       progress_status[ChipId] = {"progress": 0, "status": "error", "message": str(e)}
    finally:
-      # Восстанавливаем оригинальные значения
-      self.ping_interval = CurrentPingInterval
-      self.ping_timeout = CurrentPingTimeout
+      pass
 
 async def Authentication(self, Json, ChipId):
    Token = Json['Token']
