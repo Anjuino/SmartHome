@@ -28,12 +28,20 @@ async def SendFirmware(self):
          ChipId = client['ChipId']
          break
 
-   firmware_filename = f"firmware_{ChipId}.bin"
-   firmware_path = os.path.join(firmware_filename)
-
-   chunk_size = 4096
-   totalReadSize = 0
+   # Сохраняем оригинальные значения
+   CurrentPingInterval = self.ping_interval
+   CurrentPingTimeout  = self.ping_timeout
+   
+   # Временно отключаем пинги
+   self.ping_interval = None
+   self.ping_timeout = None
+   
    try:
+      firmware_filename = f"firmware_{ChipId}.bin"
+      firmware_path = os.path.join(firmware_filename)
+
+      chunk_size = 4096
+      totalReadSize = 0
       with open(firmware_path, 'rb') as f:
          file_size = os.path.getsize(firmware_path)
          while True:
@@ -58,14 +66,10 @@ async def SendFirmware(self):
    except Exception as e:
       print(f"Ошибка: {e}")
       progress_status[ChipId] = {"progress": 0, "status": "error", "message": str(e)}
-
-async def LogHandler(self, Json, ChipId):
-   for index, client in enumerate(self.DeviceList):
-      if client['ChipId'] == ChipId:
-         Log = Json['Log']
-         DeviceName = client['DeviceName']  
-         print(f"Получил лог от {ChipId}:{DeviceName} ---> {Log}")
-         break
+   finally:
+      # Восстанавливаем оригинальные значения
+      self.ping_interval = CurrentPingInterval
+      self.ping_timeout = CurrentPingTimeout
 
 async def Authentication(self, Json, ChipId):
    Token = Json['Token']
