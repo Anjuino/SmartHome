@@ -8,8 +8,8 @@ USERNAME = "Anjey"
 
 class WebSocketESP(tornado.websocket.WebSocketHandler):
 
-   ping_interval = 60 
-   ping_timeout  = 90
+   ping_interval = 65 
+   ping_timeout  = 60
 
    DeviceList = []         # Список подключенных устройств
 
