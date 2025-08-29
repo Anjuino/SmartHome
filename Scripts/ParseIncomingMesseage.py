@@ -21,22 +21,59 @@ async def ParseMesseage(self, Messeage):
 
 
 progress_status = {}  # Словарь для хранения прогресса по ChipId
+def CheckPlatform(firmware_path, TypeDevice, ChipId):
+   try:
+      with open(firmware_path, 'rb') as f:
+
+         f.seek(-39, 2)  # Перемещаемся к footer (39 байт с конца)
+         footer = f.read(39)
+         
+         platform_from_file = footer[32:39].decode('utf-8').strip()
+         
+         print(f"Платформа из файла: '{platform_from_file}'")
+         print(f"Тип устройства: '{TypeDevice}'")
+         
+         # Проверяем совместимость по TypeDevice
+         if TypeDevice == "Telemetry" and platform_from_file != "ESP8266":
+            print(f"Прошивка для {platform_from_file}, а устройство ESP8266 (Telemetry)")
+            progress_status[ChipId] = {"progress": 100, "status": "error", "message": "Прошивка для esp32"}
+            return False
+               
+         elif TypeDevice == "LedController" and platform_from_file != "ESP32":
+            print(f"Прошивка для {platform_from_file}, а устройство ESP32 (LedController)")
+            progress_status[ChipId] = {"progress": 100, "status": "error", "message": "Прошивка для esp8266"}
+            return False
+
+         else: return True
+
+   except Exception as e:
+      print(f"Ошибка при проверке платформы: {e}")
+      progress_status[ChipId] = {"progress": 100, "status": "error", "message": "Ошибка при проверке платформы"}
+      return False
+   
+
+
 async def SendFirmware(self):
    ChipId = None
+   TypeDevice = None
    for client in self.DeviceList:
       if client['ws'] == self:
          ChipId = client['ChipId']
+         TypeDevice = client['TypeDevice']
          break
 
    firmware_filename = f"firmware_{ChipId}.bin"
    firmware_path = os.path.join(firmware_filename)
 
-   chunk_size = 4096
-   totalReadSize = 0
-   try:
-      with open(firmware_path, 'rb') as f:
-         file_size = os.path.getsize(firmware_path)
-         while True:
+   if CheckPlatform(firmware_path, TypeDevice, ChipId) == True:
+
+      chunk_size = 4096
+      totalReadSize = 0
+
+      try:
+         with open(firmware_path, 'rb') as f:
+            file_size = os.path.getsize(firmware_path)
+            while True:
                chunk = f.read(chunk_size)
                if not chunk:
                   print("Отправил прошивку")
@@ -55,9 +92,9 @@ async def SendFirmware(self):
                progress_status[ChipId] = {"progress": progress, "status": "in_progress"}
                print(f"\rПрогресс: {progress} %", end="", flush=True)
                await asyncio.sleep(0.3)
-   except Exception as e:
-      print(f"Ошибка: {e}")
-      progress_status[ChipId] = {"progress": 0, "status": "error", "message": str(e)}
+      except Exception as e:
+         print(f"Ошибка: {e}")
+         progress_status[ChipId] = {"progress": 0, "status": "error", "message": str(e)}
 
 async def LogHandler(self, Json, ChipId):
    for index, client in enumerate(self.DeviceList):
