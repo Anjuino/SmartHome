@@ -51,8 +51,6 @@ def CheckPlatform(firmware_path, TypeDevice, ChipId):
       progress_status[ChipId] = {"progress": 100, "status": "error", "message": "Ошибка при проверке платформы"}
       return False
    
-
-
 async def SendFirmware(self):
    ChipId = None
    TypeDevice = None
