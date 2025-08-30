@@ -68,6 +68,12 @@ IsDetectedMove - добавлять если у контроллера есть 
 "NewName": "Подсветка"
 }
 
+Пролучить Ip устройства
+{
+"TypeMesseage": "GetIpDevice"
+}
+
+
 /Device/SendMesseage
 {
 "TypeMesseage": "GetState"

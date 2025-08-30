@@ -476,6 +476,7 @@
                requestData = data;
 
                if (data.TypeMesseage === "UpdateNameController") EndPoint = '/Admin'
+               if (data.TypeMesseage === "GetIpDevice")          EndPoint = '/Admin'
 
             } catch (e) {
                alert("Ошибка в формате JSON: " + e.message);

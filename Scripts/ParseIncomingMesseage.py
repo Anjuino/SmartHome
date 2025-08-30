@@ -105,6 +105,7 @@ async def LogHandler(self, Json, ChipId):
 async def Authentication(self, Json, ChipId):
    Token = Json['Token']
    DeviceType = Json['TypeDevice']
+   Build = Json['Build']
 
    # Проверяем наличие контроллера в базе
    if await DataBase.CheckController(ChipId): pass  # Контроллер уже есть в базе
@@ -125,6 +126,7 @@ async def Authentication(self, Json, ChipId):
          #print("Обновляю устройство в списке") 
          # Обновляем существующее устройство
          client['ws'] = self
+         client['Build'] = Build
          FoundDevice = True
          break
 
@@ -134,6 +136,7 @@ async def Authentication(self, Json, ChipId):
          'ChipId': ChipId, 
          'DeviceName': DeviceName, 
          'TypeDevice': DeviceType,
+         'Build': Build,
          'ws': self
       })
 
