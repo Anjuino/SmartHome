@@ -13,7 +13,18 @@ class AdminHandler(tornado.web.RequestHandler):
         TypeMesseage = JsonData['TypeMesseage']
 
         if (TypeMesseage == "GetListDevice"): 
-            ListDevice = [{"ChipId": client["ChipId"], "TypeDevice": client["TypeDevice"], "DeviceName": client["DeviceName"]} for client in Controllers.WebSocketESP.DeviceList]  
+            Token = JsonData['Token']
+            # Получаем список устройств только для указанного токена
+            if Token in Controllers.WebSocketESP.DeviceList:
+                ListDevice = [
+                    {
+                        "ChipId": client["ChipId"], 
+                        "TypeDevice": client["TypeDevice"], 
+                        "DeviceName": client["DeviceName"]
+                    } for client in Controllers.WebSocketESP.DeviceList[Token]
+                ]
+            else: ListDevice = []  # Если нет устройств для этого токена
+        
             self.write(json.dumps(ListDevice)) # отправляем клиенту
 
         if (TypeMesseage == "GetIpDevice"):
@@ -29,14 +40,9 @@ class AdminHandler(tornado.web.RequestHandler):
                 ws_object = Device['ws']
                 ip_address = ws_object.request.remote_ip
                 
-                response = {
-                    'IP': ip_address,
-                }
-            else:
-                response = {
-                    'IP': None,
-                    'status': 'device_not_found'
-                }
+                response = { 'IP': ip_address}
+                
+            else: response = { 'IP': None, 'status': 'device_not_found' }
             
             self.write(json.dumps(response))
 

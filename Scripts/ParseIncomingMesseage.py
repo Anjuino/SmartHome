@@ -18,6 +18,7 @@ async def ParseMesseage(self, Messeage):
    if DataJson['TypeMesseage'] == 'Authentication': await Authentication(self, DataJson, ChipId)      
    if DataJson['TypeMesseage'] == 'Log':            await LogHandler(self, DataJson, ChipId)
    if DataJson['TypeMesseage'] == 'GetFirmware':    await SendFirmware(self)
+   if DataJson['TypeMesseage'] == 'ToDataBase':     await DataBase.SetDataToDataBase(DataJson, ChipId)
 
 
 progress_status = {}  # Словарь для хранения прогресса по ChipId
@@ -108,9 +109,11 @@ async def Authentication(self, Json, ChipId):
    Build = Json['Build']
 
    # Проверяем наличие контроллера в базе
-   if await DataBase.CheckController(ChipId): pass  # Контроллер уже есть в базе
+   if await DataBase.CheckController(ChipId): 
+      pass  # Контроллер уже есть в базе
    else: 
-      if await DataBase.SetController(ChipId, Token): pass  # Контроллер успешно добавлен
+      if await DataBase.SetController(ChipId, Token): 
+         pass  # Контроллер успешно добавлен
       else:
          print("Токен контроллера неверный")
          Messeage = json.dumps({"Command": "ResetToken"}, ensure_ascii=False)
@@ -120,10 +123,13 @@ async def Authentication(self, Json, ChipId):
    DeviceName = await DataBase.GetControllerName(ChipId)
    FoundDevice = False
    
-   # Ищем устройство в списке
-   for client in Controllers.WebSocketESP.DeviceList:
+   # Инициализируем структуру для нового токена, если его нет
+   if Token not in Controllers.WebSocketESP.DeviceList:
+      Controllers.WebSocketESP.DeviceList[Token] = []
+   
+   # Ищем устройство в списке для данного токена
+   for client in Controllers.WebSocketESP.DeviceList[Token]:
       if client['ChipId'] == ChipId:
-         #print("Обновляю устройство в списке") 
          # Обновляем существующее устройство
          client['ws'] = self
          client['Build'] = Build
@@ -131,8 +137,8 @@ async def Authentication(self, Json, ChipId):
          break
 
    if not FoundDevice:
-      #print("Добавляю устройство как новое") 
-      Controllers.WebSocketESP.DeviceList.append({
+      # Добавляем устройство как новое для данного токена
+      Controllers.WebSocketESP.DeviceList[Token].append({
          'ChipId': ChipId, 
          'DeviceName': DeviceName, 
          'TypeDevice': DeviceType,

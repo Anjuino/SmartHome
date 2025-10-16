@@ -6,8 +6,10 @@ import string
 import aiosqlite
 import asyncio
 
-script_dir = os.path.dirname(os.path.abspath(__file__))
-PATHDATABASE = os.path.join(script_dir, '../DataBase/IOT_Sysytem.db')
+#script_dir = os.path.dirname(os.path.abspath(__file__))
+#PATHDATABASE = os.path.join(script_dir, '../DataBase/IOT_Sysytem.db') 
+PATHDATABASE = '/root/Flash/IOT_Sysytem.db'
+
 
 # Функция для добавления пользователя
 async def AddUser(login, password):
@@ -76,3 +78,28 @@ async def SetController(ChipId, Token):
          print("Пользователь с таким токеном не найден.")
    
    return TokenIs
+
+async def SetDataToDataBase(DataJson, ChipId):
+   try:
+      async with aiosqlite.connect(PATHDATABASE) as db:
+         if DataJson.get('Temperature') is not None: await _insert_sensor_data(db, ChipId, 'Temperature', DataJson['Temperature'])
+         
+         if DataJson.get('Humidity') is not None: await _insert_sensor_data(db, ChipId, 'Humidity', DataJson['Humidity'])
+         
+         if DataJson.get('CO2ppm') is not None: await _insert_sensor_data(db, ChipId, 'CO2ppm', DataJson['CO2ppm'])
+               
+   except Exception as e:
+      print(f"Ошибка при работе с БД: {e}")
+
+async def _insert_sensor_data(db, chip_id, sensor_type, value):
+    try:
+        async with db.cursor() as cursor:
+            now = datetime.datetime.now().strftime('%Y-%m-%d %H:%M')
+            
+            query = f'INSERT INTO {sensor_type} (ChipId, {sensor_type}, Time) VALUES (?, ?, ?)'
+            await cursor.execute(query, (chip_id, value, now))
+            
+    except sqlite3.IntegrityError as e:
+        print(f"Ошибка целостности данных для {sensor_type}: {e}")
+    except Exception as e:
+        print(f"Ошибка при записи {sensor_type}: {e}")

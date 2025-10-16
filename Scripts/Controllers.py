@@ -11,7 +11,9 @@ class WebSocketESP(tornado.websocket.WebSocketHandler):
    ping_interval = 65 
    ping_timeout  = 60
 
-   DeviceList = []         # Список подключенных устройств
+   #DeviceList = []         # Список подключенных устройств
+
+   DeviceList = {}  # {token: [devices]} # Список подключенных устройств
 
    ResponseBuffer = {}  # Добавляем словарь для ожидающих ответов
     

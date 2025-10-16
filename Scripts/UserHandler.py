@@ -24,14 +24,14 @@ class HTTPHandlerClient(tornado.web.RequestHandler):
             Request = {"TypeMesseage": TypeMesseage}
 
          ### команды для телеметрии
-         if (TypeMesseage == "UpdateZoneName"):
+         '''if (TypeMesseage == "UpdateZoneName"):
             TypeResponse = "UpdateZoneName"
             Request = {
                "TypeMesseage": TypeMesseage,
                "NumZone": JsonData['NumZone'],
                "OldName": JsonData['OldName'],
                "NewName": JsonData['NewName']
-            }
+            }'''
 
          ### команды для контроллеров лент
          if (TypeMesseage == "GetSettingLed"):

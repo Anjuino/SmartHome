@@ -8,9 +8,9 @@ import OTA
 def make_app():
    return tornado.web.Application([
       (r"/ws",                      Controllers.WebSocketESP),        # Открытие соединения для контроллеров
-      (r"/Admin",                   AdminBoard.AdminHandler),         # Страница с админкой для конкретного пользователя. Из полезного пока только прошивка контроллера и получение состояния (в идеале это пространство для тестирования запросов)
+      (r"/Admin",                   AdminBoard.AdminHandler),         # Страница с админкой. Можно тестировать разные запросы на устройства.
       (r"/Device/SendMesseage",     UserHandler.HTTPHandlerClient),   # Эндпоинт по которому можно отправлять сообщения в контроллер
-      (r"/Device/OTA",              OTA.OTAHandler),                  # Эндпоинт по которому можно загрузить прошивку на сервер
+      (r"/Device/OTA",              OTA.OTAHandler),                  # Эндпоинт по которому можно загрузить прошивку на сервер с отправкой в выбранный контроллер
    ])
 
 async def main():
