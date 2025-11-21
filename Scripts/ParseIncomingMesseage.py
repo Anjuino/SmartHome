@@ -17,11 +17,16 @@ async def ParseMesseage(self, Messeage):
    
    if DataJson['TypeMesseage'] == 'Authentication': await Authentication(self, DataJson, ChipId)      
    if DataJson['TypeMesseage'] == 'Log':            await LogHandler(self, DataJson, ChipId)
-   if DataJson['TypeMesseage'] == 'GetFirmware':    await SendFirmware(self)
+
    if DataJson['TypeMesseage'] == 'ToDataBase':     await DataBase.SetDataToDataBase(DataJson, ChipId)
+
+   if DataJson['TypeMesseage'] == 'GetFirmware':        await SendFirmware(self)
+   if DataJson['TypeMesseage'] == 'NextFirmwarePacket': await SendNextFirmwareChunk(self)
+   if DataJson['TypeMesseage'] == 'OtaFinish':          await OtaFinishHandler(self, ChipId) 
 
 
 progress_status = {}  # Словарь для хранения прогресса по ChipId
+firmware_positions = {}  # Храним текущую позицию в файле для каждого устройства
 def CheckPlatform(firmware_path, TypeDevice, ChipId):
    try:
       with open(firmware_path, 'rb') as f:
@@ -53,55 +58,75 @@ def CheckPlatform(firmware_path, TypeDevice, ChipId):
       return False
    
 async def SendFirmware(self):
-   ChipId = None
-   TypeDevice = None
-   for client in self.DeviceList:
-      if client['ws'] == self:
-         ChipId = client['ChipId']
-         TypeDevice = client['TypeDevice']
-         break
+   Device = Controllers.WebSocketESP.FindDeviceByWebSocket(self)
+   
+   if not Device:
+      print("Не удалось найти устройство для отправки прошивки")
+      return
+
+   ChipId = Device['ChipId']
+   TypeDevice = Device['TypeDevice']
 
    firmware_filename = f"firmware_{ChipId}.bin"
    firmware_path = os.path.join(firmware_filename)
 
    if CheckPlatform(firmware_path, TypeDevice, ChipId) == True:
+      self.firmware_file = open(firmware_path, 'rb')
+      self.file_size = os.path.getsize(firmware_path)
+      self.sent_bytes = 0
+      
+      progress_status[ChipId] = {"progress": 0, "status": "in_progress"}
+      
+      # Отправляем первый чанк
+      await SendNextFirmwareChunk(self)
 
-      chunk_size = 4096
-      totalReadSize = 0
+async def SendNextFirmwareChunk(self):
+   Device = Controllers.WebSocketESP.FindDeviceByWebSocket(self)
+   
+   if not Device:
+      print("Не удалось найти устройство для отправки прошивки")
+      return
 
-      try:
-         with open(firmware_path, 'rb') as f:
-            file_size = os.path.getsize(firmware_path)
-            while True:
-               chunk = f.read(chunk_size)
-               if not chunk:
-                  print("Отправил прошивку")
-                  progress_status[ChipId] = {"progress": 100, "status": "completed"}
-                  break
-               
-               if self.ws_connection.is_closing():
-                  print("Клиент отключился, отмена отправки")
-                  progress_status[ChipId] = {"progress": 0, "status": "failed"}
-                  return
-               
-               await self.write_message(chunk, binary=True)
-               totalReadSize += len(chunk)
-               
-               progress = round((totalReadSize / file_size) * 99)
-               progress_status[ChipId] = {"progress": progress, "status": "in_progress"}
-               print(f"\rПрогресс: {progress} %", end="", flush=True)
-               await asyncio.sleep(0.3)
-      except Exception as e:
-         print(f"Ошибка: {e}")
-         progress_status[ChipId] = {"progress": 0, "status": "error", "message": str(e)}
+   ChipId = Device['ChipId']
+   
+   if not hasattr(self, 'firmware_file') or self.firmware_file.closed:
+      print(f"Файл прошивки не открыт для устройства {ChipId}")
+      return
+
+   try:
+      chunk = self.firmware_file.read(2048)
+      if not chunk:
+         return
+   
+      await self.write_message(chunk, binary=True)
+   
+      self.sent_bytes += len(chunk)
+   
+      progress = round((self.sent_bytes / self.file_size) * 99)
+      progress_status[ChipId] = {"progress": progress, "status": "in_progress"}
+      print(f"\rПрогресс: {progress}% (отправлено {self.sent_bytes} из {self.file_size} байт)", end="", flush=True)
+      
+   except Exception as e:
+      print(f"Ошибка отправки чанка: {e}")
+      progress_status[ChipId] = {"progress": 0, "status": "error", "message": str(e)}
+      if hasattr(self, 'firmware_file'):
+         self.firmware_file.close()
+
+async def OtaFinishHandler(self, ChipId):
+   print(f"Устройство {ChipId} сообщило об успешном завершении OTA")
+   
+   if hasattr(self, 'firmware_file') and not self.firmware_file.closed:
+      self.firmware_file.close()
+      print(f"Файл прошивки для {ChipId} закрыт")
+   
+   progress_status[ChipId] = {"progress": 100, "status": "completed"}
 
 async def LogHandler(self, Json, ChipId):
-   for index, client in enumerate(self.DeviceList):
-      if client['ChipId'] == ChipId:
-         Log = Json['Log']
-         DeviceName = client['DeviceName']  
-         print(f"Получил лог от {ChipId}:{DeviceName} ---> {Log}")
-         break
+   Device = Controllers.WebSocketESP.FindDeviceByChipId(ChipId)
+   if Device:
+      Log = Json['Log']
+      DeviceName = Device['DeviceName']  
+      print(f"Получил лог от {ChipId}:{DeviceName} ---> {Log}")
 
 async def Authentication(self, Json, ChipId):
    Token = Json['Token']

@@ -3,179 +3,9 @@
 <head>
    <meta charset="UTF-8">
    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <link rel="icon" href="./static/icon/favicon.png" type="image/x-icon">
+   <link rel="stylesheet" type="text/css" href="./static/css/style.css">
    <title>Управление устройствами</title>
-   <style>
-      body {
-         font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-         margin: 0;
-         padding: 20px;
-         background-color: #2a2a2a;
-         color: #333;
-      }
-      .container {
-         display: flex;
-         gap: 20px;
-         max-width: 1200px;
-         margin: 0 auto;
-         align-items: flex-start;
-      }
-      .card {
-         flex: 1;
-         border: 2px solid #ffffff;
-         padding: 25px;
-         border-radius: 10px;
-         background-color: white;
-         box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-      }
-      .result-panel {
-         flex: 1;
-         border: 2px solid #ffffff;
-         padding: 25px;
-         border-radius: 10px;
-         background-color: white;
-         box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-         display: flex;
-         flex-direction: column;
-      }
-      .form-group {
-         margin-bottom: 20px;
-      }
-      label {
-         display: block;
-         margin-bottom: 8px;
-         font-weight: 600;
-         color: #495057;
-      }
-      select {
-         padding: 10px 12px;
-         border: 1px solid #ced4da;
-         border-radius: 6px;
-         width: 100%;
-         max-width: 400px;
-         background-color: #fff;
-         font-size: 14px;
-         color: #495057;
-         transition: border-color 0.15s ease-in-out;
-      }
-      select:focus {
-         border-color: #80bdff;
-         outline: 0;
-         box-shadow: 0 0 0 0.2rem rgba(0,123,255,0.25);
-      }
-      button {
-         padding: 10px 20px;
-         background-color: #007bff;
-         color: white;
-         border: none;
-         border-radius: 6px;
-         cursor: pointer;
-         font-size: 14px;
-         font-weight: 500;
-         transition: background-color 0.15s ease-in-out;
-         margin-top: 10px;
-      }
-      button:hover {
-         background-color: #0069d9;
-      }
-      .refresh-btn {
-         margin-bottom: 15px;
-      }
-
-      #responseOutput {
-         white-space: pre-wrap;
-         font-family: 'Consolas', 'Monaco', monospace;
-         color: #f8f9fa;
-         background: #020208;
-         padding: 15px;
-         border-radius: 6px;
-         flex-grow: 1;
-         overflow-y: auto;
-         margin-bottom: 15px;
-         font-size: 13px;
-         line-height: 1.5;
-      }
-      #responseMeta {
-         font-size: 13px;
-         color: #6c757d;
-         padding: 10px 0;
-         border-top: 1px solid #e9ecef;
-      }
-      #customCommandPanel {
-         margin-top: 20px;
-         display: none;
-      }
-      #customCommandInput {
-         width: 100%;
-         min-height: 120px;
-         font-family: 'Consolas', 'Monaco', monospace;
-         margin-bottom: 10px;
-         padding: 12px;
-         border: 1px solid #ced4da;
-         border-radius: 6px;
-         resize: vertical;
-         font-size: 13px;
-         line-height: 1.5;
-         box-sizing: border-box;
-      }
-      #customCommandInput:focus {
-         border-color: #80bdff;
-         outline: 0;
-         box-shadow: 0 0 0 0.2rem rgba(0,123,255,0.25);
-      }
-      .command-panel {
-         margin-top: 20px;
-      }
-      h1 {
-         color: #212529;
-         margin-top: 0;
-      }
-      h3 {
-         color: #212529;
-         margin-top: 0;
-         margin-bottom: 15px;
-      }
-      h4 {
-         color: #343a40;
-         margin-top: 0;
-         margin-bottom: 10px;
-         font-size: 16px;
-      }
-      #firmwareUploadPanel {
-         margin-top: 20px;
-         display: none;
-      }
-      #firmwareFile {
-         margin-bottom: 10px;
-      }
-      .progress-container {
-         width: 100%;
-         height: 20px;
-         border-radius: 10px;
-      }
-      .progress-bar {
-         height: 100%;
-         background-color: #15cc00;
-         transition: width 0.3s ease;
-      }
-      .progress-text {
-         font-size: 18px;
-         color:  #ffffff;
-         text-align: center;
-         margin-top: 10px;
-      }
-      .progress-status {
-         font-size: 18px;
-         color: #ffffff;
-         margin-top: 5px;
-         font-weight: bold;
-      }
-      @media (max-width: 768px) {
-         .container {
-            flex-direction: column;
-            align-items: stretch;
-         }
-      }
-   </style>
 </head>
 <body class="theme-default">
    <div class="container">
@@ -267,7 +97,7 @@
             TypeMesseage: "GetListDevice"
          };
          
-         fetch('/Admin', {
+         fetch('./Admin', {
             method: 'POST',
             headers: {
                'Content-Type': 'application/json',
@@ -370,7 +200,7 @@
          formData.append('firmware', file);
          formData.append('ChipId', selectedDevice.toString());
          
-         fetch('/Device/OTA', {
+         fetch('./Device/OTA', {
             method: 'POST',
             body: formData
          })
@@ -407,7 +237,7 @@
                ChipId: chipId
             };
             
-            fetch('/Admin', {
+            fetch('./Admin', {
                method: 'POST',
                headers: {
                   'Content-Type': 'application/json',
@@ -459,7 +289,7 @@
          let data = {};
          let requestData = {};
 
-         var EndPoint = '/Device/SendMesseage';
+         var EndPoint = './Device/SendMesseage';
 
          if (commandType === "UserInput") {
             try {
@@ -475,8 +305,8 @@
 
                requestData = data;
 
-               if (data.TypeMesseage === "UpdateNameController") EndPoint = '/Admin'
-               if (data.TypeMesseage === "GetIpDevice")          EndPoint = '/Admin'
+               if (data.TypeMesseage === "UpdateNameController") EndPoint = './Admin'
+               if (data.TypeMesseage === "GetIpDevice")          EndPoint = './Admin'
 
             } catch (e) {
                alert("Ошибка в формате JSON: " + e.message);

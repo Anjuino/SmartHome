@@ -7,15 +7,16 @@ import aiosqlite
 import asyncio
 
 #script_dir = os.path.dirname(os.path.abspath(__file__))
-#PATHDATABASE = os.path.join(script_dir, '../DataBase/IOT_Sysytem.db') 
-PATHDATABASE = '/root/Flash/IOT_Sysytem.db'
+#PATHDATABASE = os.path.join(script_dir, '../DataBase/IOT_System.db') 
+PATHDATABASE = '/root/Flash/IOT_System.db'
 
 
 # Функция для добавления пользователя
 async def AddUser(login, password):
    hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())   
    characters = string.ascii_letters + string.digits 
-   token = ''.join(random.choices(characters, k=6))
+   #token = ''.join(random.choices(characters, k=6))
+   token = '777507'
 
    async with aiosqlite.connect(PATHDATABASE) as db:
       await db.execute('''
@@ -25,13 +26,30 @@ async def AddUser(login, password):
 
 # Проверить пользователя по паролю
 async def CheckUser(login, password):
-   async with aiosqlite.connect(PATHDATABASE) as db:
-      cursor = await db.execute('SELECT Password FROM Users WHERE Login = ?', (login,))
-      result = await cursor.fetchone()
+    async with aiosqlite.connect(PATHDATABASE) as db:
+        cursor = await db.execute('SELECT Password, Token FROM Users WHERE Login = ?', (login,))
+        result = await cursor.fetchone()
 
-   if result and bcrypt.checkpw(password.encode('utf-8'), result[0]): 
-      return True 
-   return False
+    if result and bcrypt.checkpw(password.encode('utf-8'), result[0]):
+        return result[1]  # Возвращаем токен пользователя
+    return None  # Если авторизация не удалась
+
+# Проверяет, что устройство принадлежит пользователю с данным токеном
+async def CheckDeviceOwnership(token, chip_id):
+   async with aiosqlite.connect(PATHDATABASE) as db:
+      cursor = await db.execute(
+         'SELECT 1 FROM Controllers WHERE ChipId = ? AND Token = ?', 
+         (chip_id, token)
+      )
+      result = await cursor.fetchone()
+      return result is not None
+
+# Проверяет существует ли токен в базе 
+async def CheckToken(token):
+    async with aiosqlite.connect(PATHDATABASE) as db:
+        cursor = await db.execute('SELECT 1 FROM Users WHERE Token = ?', (token,))
+        result = await cursor.fetchone()
+        return result is not None
 
 # Найти контроллер по ChipId
 async def CheckController(ChipId):

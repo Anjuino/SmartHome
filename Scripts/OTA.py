@@ -6,6 +6,16 @@ import json
 FIRMWARE_PATH = "firmware.bin"
 
 class OTAHandler(tornado.web.RequestHandler):
+    async def get(self):
+        if not os.path.exists(FIRMWARE_PATH):
+            self.set_status(404)
+            self.write("Прошивка не найдена")
+            return
+        
+        self.set_header('Content-Type', 'application/octet-stream')
+        with open(FIRMWARE_PATH, 'rb') as f:
+            self.write(f.read())
+
     async def post(self):
         # Проверяем наличие файла и chipid
         if 'firmware' not in self.request.files:
@@ -43,19 +53,15 @@ class OTAHandler(tornado.web.RequestHandler):
             })
 
             chip_id = int(chip_id)
-            Device = None
-            for client in Controllers.WebSocketESP.DeviceList:
-                if client['ChipId'] == chip_id:
-                    Device = client['ws']
-                    break
-            
+            Device = Controllers.WebSocketESP.FindDeviceByChipId(chip_id)
+
             if not Device: 
                 print("Не нашел устройство")
                 raise Exception("Устройство не найдено или не подключено")
             
             Request = {"TypeMesseage": "StartOTA"}
             # Отправляем запрос устройству
-            Device.write_message(json.dumps(Request))
+            Device['ws'].write_message(json.dumps(Request))
             
         except Exception as e:
             self.set_status(500)

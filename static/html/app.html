@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="./static/icon/favicon.png" type="image/x-icon">
+    <link rel="stylesheet" type="text/css" href="./static/css/style_app.css">
+    <title>Мои устройства</title>
+</head>
+<body>
+    <nav id="appNav" class="app-nav">
+        <div class="nav-container">
+            <div class="nav-links">
+                <button class="nav-button" onclick="logout()">Выход</button>
+            </div>
+        </div>
+    </nav>
+
+    <div id="authSection" class="page-section">
+        <div class="container">
+            <div class="card" style="max-width: 400px; margin: 0 auto;">
+                <h1 style="text-align: center; margin-bottom: 30px;">Авторизация</h1>
+                <form id="authForm">
+                    <div class="form-group">
+                        <label for="login">Логин:</label>
+                        <input type="text" id="login" name="login" required>
+                        <label for="password">Пароль:</label>
+                        <input type="password" id="password" name="password" required>
+                    </div>
+                    <button type="submit" style="width: 100%;">Войти</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div id="devicesSection" class="page-section">
+        <div class="container">
+            <div class="card">
+                <div id="deviceTypesGrid" class="devices-grid"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="deviceListSection" class="page-section">
+        <div class="container">
+            <div class="card">
+                <div id="devicesLoading" class="loading hidden">Загрузка устройств...</div>
+                <div id="devicesList" class="devices-grid"></div>
+                <div class="buttons-container">
+                    <button class="back-button" onclick="goBackToMain()">←</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="deviceControlSection" class="page-section">
+        <div class="container">
+            <div class="card">
+                <div class="control-panel"></div>
+                <div class="buttons-container">
+                    <button class="back-button" onclick="goBackToList()">←</button>
+                    <button class="back-button" onclick="showDeviceSettings()">⚙</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="deviceSettingsSection" class="page-section">
+        <div class="container">
+            <div class="card">
+                <h2 style="text-align: center; margin-bottom: 30px;">Настройки устройства</h2>
+                <div class="settings-content">
+                    <div class="setting-item">
+                        <label for="device-name">Название устройства:</label>
+                        <input type="text" id="device-name" class="setting-input">
+                    </div>
+                    <div class="setting-actions">
+                        <button onclick="saveDeviceSettings()" style="background: #28a745;">Сохранить</button>
+                    </div>
+                </div>
+                <div class="buttons-container">
+                    <button class="back-button" onclick="goBackToControl()">←</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script  src="./static/js/Common.js"></script> <!--Для чего то общего хз пока-->
+    <script  src="./static/js/Device.js"></script> <!--Для устройств>-->
+
+    <script>
+        let userToken = null;
+        let currentRoute = 'login';
+        let selectedDevice = null;
+        let allDevices = [];
+        let deviceTypes = {};
+        let currentDeviceType = '';
+        let lastDeviceControlCall = 0;
+        let isLoadingDevices = false;
+        let lastDevicesLoadTime = 0;
+        const DEVICES_CACHE_TIME = 5000;
+
+        class AppRouter {
+            constructor() {
+                this.routes = {
+                    'login': this.showLogin.bind(this),
+                    'devices': this.showDevices.bind(this),
+                    'deviceList': this.showDeviceList.bind(this),
+                    'deviceControl': this.showDeviceControl.bind(this),
+                    'deviceSettings': this.showDeviceSettings.bind(this)
+                };
+            }
+
+            navigate(path) {
+                if (path === currentRoute) return;
+                
+                currentRoute = path;
+                window.location.hash = path;
+                this.route();
+            }
+
+            route() {
+                const hash = window.location.hash.substring(1) || 'login';
+                const handler = this.routes[hash] || this.routes['login'];
+                handler();
+            }
+
+            showDeviceSettings() {
+                if (!this.checkAuth()) return;
+                
+                if (!selectedDevice) {
+                    this.navigate('devices');
+                    return;
+                }
+                
+                this.hideAllSections();
+                document.getElementById('deviceSettingsSection').style.display = 'block';
+                document.getElementById('appNav').style.display = 'block';
+                
+                // Здесь можно загрузить текущие настройки устройства
+                loadDeviceSettings();
+            }
+
+            showLogin() {
+                this.hideAllSections();
+                document.getElementById('authSection').style.display = 'block';
+                document.getElementById('appNav').style.display = 'none';
+            }
+
+            showDevices() {
+                if (!this.checkAuth()) return;
+                
+                this.hideAllSections();
+                document.getElementById('devicesSection').style.display = 'block';
+                document.getElementById('appNav').style.display = 'block';
+                
+                const now = Date.now();
+                if (allDevices.length === 0 || now - lastDevicesLoadTime > DEVICES_CACHE_TIME) {
+                    loadDeviceTypes();
+                } else {
+                    displayDeviceTypes();
+                }
+            }
+
+            showDeviceList() {
+                if (!this.checkAuth()) return;
+                
+                const now = Date.now();
+                if (allDevices.length === 0 || now - lastDevicesLoadTime > DEVICES_CACHE_TIME) {
+                    loadDeviceTypes().then(() => {
+                        this.showDeviceListAfterLoad();
+                    });
+                } else {
+                    this.showDeviceListAfterLoad();
+                }
+            }
+
+            showDeviceListAfterLoad() {
+                if (Object.keys(deviceTypes).length === 0) {
+                    this.navigate('devices');
+                    return;
+                }
+                
+                this.hideAllSections();
+                document.getElementById('deviceListSection').style.display = 'block';
+                document.getElementById('appNav').style.display = 'block';
+                
+                const savedDeviceType = localStorage.getItem('currentDeviceType');
+                if (savedDeviceType) {
+                    currentDeviceType = savedDeviceType;
+                }
+                
+                if (currentDeviceType && Object.keys(deviceTypes).length > 0) {
+                    loadDevicesByType(currentDeviceType);
+                } else {
+                    this.navigate('devices');
+                }
+            }
+
+            showDeviceControl() {
+                
+                // Борьба с дублированием запросов
+                const now = Date.now();
+                if (now - lastDeviceControlCall < 1000) {
+                    return;
+                }
+                lastDeviceControlCall = now;
+
+                if (!this.checkAuth()) return;
+                
+                if (!selectedDevice) {
+                    this.navigate('devices');
+                    return;
+                }
+                
+                this.hideAllSections();
+                document.getElementById('deviceControlSection').style.display = 'block';
+                document.getElementById('appNav').style.display = 'block';
+                
+                GetState(currentDeviceType);
+            }
+
+            checkAuth() {
+                const currentToken = localStorage.getItem('userToken');
+                if (!currentToken) {
+                    userToken = null;
+                    this.navigate('login');
+                    return false;
+                }
+                
+                userToken = currentToken;
+                return true;
+            }
+
+            hideAllSections() {
+                document.querySelectorAll('.page-section').forEach(section => {
+                    section.style.display = 'none';
+                });
+                document.getElementById('appNav').style.display = 'none';
+            }
+        }
+
+        const router = new AppRouter();
+
+    </script>
+</body>
+</html>
