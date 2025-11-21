@@ -14,7 +14,7 @@ async def ParseMesseage(self, Messeage):
    key = (ChipId, TypeMesseage)
    if key in self.ResponseBuffer and not self.ResponseBuffer[key].done(): 
       self.ResponseBuffer[key].set_result(DataJson)
-   
+
    if DataJson['TypeMesseage'] == 'Authentication': await Authentication(self, DataJson, ChipId)      
    if DataJson['TypeMesseage'] == 'Log':            await LogHandler(self, DataJson, ChipId)
 

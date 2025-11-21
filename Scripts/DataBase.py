@@ -5,6 +5,7 @@ import random
 import string
 import aiosqlite
 import asyncio
+import datetime
 
 #script_dir = os.path.dirname(os.path.abspath(__file__))
 #PATHDATABASE = os.path.join(script_dir, '../DataBase/IOT_System.db') 
@@ -99,17 +100,36 @@ async def SetController(ChipId, Token):
 
 async def SetDataToDataBase(DataJson, ChipId):
    try:
+      if 'Data' not in DataJson:
+         print("Ключ 'Data' отсутствует в JSON")
+         return
+      
+      data_list = DataJson['Data']
+      if not data_list:
+         print("Список Data пустой")
+         return
+      
+      data = data_list[0]
+      
       async with aiosqlite.connect(PATHDATABASE) as db:
-         if DataJson.get('Temperature') is not None: await _insert_sensor_data(db, ChipId, 'Temperature', DataJson['Temperature'])
+         # Записываем данные
+         if data.get('Temperature') is not None:
+            await insert_sensor_data(db, ChipId, 'Temperature', data['Temperature'])
          
-         if DataJson.get('Humidity') is not None: await _insert_sensor_data(db, ChipId, 'Humidity', DataJson['Humidity'])
+         if data.get('Humidity') is not None:
+            await insert_sensor_data(db, ChipId, 'Humidity', data['Humidity'])
          
-         if DataJson.get('CO2ppm') is not None: await _insert_sensor_data(db, ChipId, 'CO2ppm', DataJson['CO2ppm'])
-               
-   except Exception as e:
-      print(f"Ошибка при работе с БД: {e}")
+         if data.get('CO2ppm') is not None:
+            await insert_sensor_data(db, ChipId, 'CO2ppm', data['CO2ppm'])
+         
+         await db.commit()
 
-async def _insert_sensor_data(db, chip_id, sensor_type, value):
+   except Exception as e:
+      print(f"❌ Ошибка при работе с БД: {e}")
+      import traceback
+      traceback.print_exc()
+
+async def insert_sensor_data(db, chip_id, sensor_type, value):
     try:
         async with db.cursor() as cursor:
             now = datetime.datetime.now().strftime('%Y-%m-%d %H:%M')

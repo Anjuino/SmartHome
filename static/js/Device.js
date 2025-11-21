@@ -274,6 +274,7 @@ function ShowStateData(TypeDevice, Data) {
         if (data.Temperature !== undefined) HTML += `<div class="data-card temperature"><h3>🌡️ Температура</h3><div class="data-value">${data.Temperature.toFixed(2)} °C</div></div>`;
         if (data.Humidity !== undefined)    HTML += `<div class="data-card humidity"><h3>💧 Влажность</h3><div class="data-value">${data.Humidity.toFixed(2)} %</div></div>`;
         if (data.CO2ppm !== undefined)      HTML += `<div class="data-card co2"><h3>CO2</h3><div class="data-value">${data.CO2ppm} ppm</div></div>`;
+        else                                HTML += `<div class="data-card co2"><h3>CO2</h3><div class="data-value">Нет датчика</div></div>`;
 
         if (!HTML) telemetryHTML = '<div class="no-data">Нет данных для отображения</div>';
         
