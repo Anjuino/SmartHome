@@ -1,7 +1,23 @@
 function goBackToMain() { router.navigate('devices'); }
 function goBackToList() { router.navigate('deviceList'); }
 function showDeviceSettings() { router.navigate('deviceSettings'); }
-function goBackToControl() { router.navigate('deviceControl'); }
+
+function goBackToControl() 
+{   
+    if (window.sensorChartInstance) {
+        window.sensorChartInstance.destroy();
+        window.sensorChartInstance = null;
+    }
+
+    const graphSection = document.getElementById('deviceGraphSection');
+    const loadingOverlay = graphSection.querySelector('.loading-overlay');
+    const chartContainer = graphSection.querySelector('.chart-container');
+    
+    if (loadingOverlay) loadingOverlay.classList.add('active');
+    if (chartContainer) chartContainer.classList.add('hidden');
+
+    router.navigate('deviceControl'); 
+}
 
 async function loadDeviceTypes() {
     if (isLoadingDevices) return allDevices;

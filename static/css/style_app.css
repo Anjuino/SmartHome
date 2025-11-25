@@ -218,6 +218,32 @@ button:active {
     background: #e9ffda;
 }
 
+.co2-status {
+    font-size: 12px;
+    margin-top: 5px;
+    font-weight: 500;
+}
+
+.data-card.co2.excellent .co2-status {
+    color: #10b981;
+}
+
+.data-card.co2.good .co2-status {
+    color: #3b82f6;
+}
+
+.data-card.co2.moderate .co2-status {
+    color: #f59e0b;
+}
+
+.data-card.co2.poor .co2-status {
+    color: #ef4444;
+}
+
+.data-card.co2.critical .co2-status {
+    color: #7c2d12;
+}
+
 .data-card.voltage {
     border-left-color: #ffa502;
     background: #fff9e6;
@@ -465,6 +491,120 @@ button:active {
     outline: none;
     border-color: #252e6d;
     box-shadow: 0 0 0 3px rgba(37, 46, 109, 0.1);
+}
+
+/* Общий индикатор загрузки */
+.loading-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 1);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    transition: opacity 0.3s ease;
+}
+
+.loading-overlay:not(.active) {
+    display: none;
+}
+
+.loading-spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid #f3f3f3;
+    border-top: 3px solid #1000ff;
+    border-radius: 80%;
+    animation: spin 1s cubic-bezier(0.26, 0.01, 0.24, 0.75) infinite;
+    margin-bottom: 15px;
+}
+
+.loading-overlay p {
+    margin: 0;
+    color: #000000;
+    font-size: 18px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.hidden {
+    display: none !important;
+}
+
+/* Анимация появления контента */
+.telemetry-cards,
+.control-group {
+    animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.value-display {
+    min-width: 40px;
+    text-align: center;
+    font-weight: bold;
+    color: #007bff;
+}
+
+.no-data {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 40px;
+    color: #666;
+    font-style: italic;
+}
+
+/* Стили для графика */
+.graph-container {
+    width: 100%;
+    height: 100%;
+}
+
+.graph-header {
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.graph-content {
+    position: relative;
+    min-height: 400px;
+}
+
+.chart-container {
+    height: 400px;
+    width: 100%;
+}
+
+.error-message {
+    text-align: center;
+    padding: 40px;
+    color: #dc3545;
+}
+
+.error-message button {
+    margin-top: 15px;
+    padding: 10px 20px;
+    background: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
 }
 
 /* Адаптивность */

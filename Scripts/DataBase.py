@@ -52,6 +52,18 @@ async def CheckToken(token):
         result = await cursor.fetchone()
         return result is not None
 
+async def GetAllUsers():
+   async with aiosqlite.connect(PATHDATABASE) as db:
+      cursor = await db.execute('SELECT Token, Login FROM Users ORDER BY Login')
+      results = await cursor.fetchall()
+      users = []
+      for result in results:
+            users.append({
+               "Token": result[0],
+               "Login": result[1]
+            })
+      return users
+
 # Найти контроллер по ChipId
 async def CheckController(ChipId):
    async with aiosqlite.connect(PATHDATABASE) as db:
@@ -141,3 +153,28 @@ async def insert_sensor_data(db, chip_id, sensor_type, value):
         print(f"Ошибка целостности данных для {sensor_type}: {e}")
     except Exception as e:
         print(f"Ошибка при записи {sensor_type}: {e}")
+
+async def get_sensor_data_from_db(chip_id, sensor_type, hours_back):
+   try:
+      async with aiosqlite.connect(PATHDATABASE) as db:
+         query = f'''
+               SELECT {sensor_type}, Time 
+               FROM {sensor_type} 
+               WHERE ChipId = ? 
+               AND datetime(Time) >= datetime('now', '-{hours_back} hours')
+               ORDER BY Time ASC
+         '''
+         async with db.execute(query, (chip_id,)) as cursor:
+               data = await cursor.fetchall()
+               
+               return [
+                  {
+                     sensor_type: row[0],
+                     'Time': row[1]
+                  }
+                  for row in data
+               ]
+               
+   except Exception as e:
+      print(f"Ошибка при получении данных {sensor_type}: {e}")
+      return []

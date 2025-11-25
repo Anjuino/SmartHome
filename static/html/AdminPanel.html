@@ -12,13 +12,22 @@
       <div class="card">
          <header>
             <h1>Управление устройствами</h1>
-            <button class="refresh-btn" onclick="refreshDeviceList()">Обновить список устройств</button>
+            <button class="refresh-btn" onclick="refreshUserList()">Обновить список пользователей</button>
          </header>
 
+         <!-- Выбор пользователя -->
+         <div class="form-group">
+            <label for="userDropdown">Выберите пользователя:</label>
+            <select id="userDropdown" onchange="onUserChange()">
+               <option value="">--Загрузка пользователей--</option>
+            </select>
+         </div>
+
+         <!-- Выбор устройства -->
          <div class="form-group">
             <label for="deviceDropdown">Выберите устройство:</label>
             <select id="deviceDropdown">
-               <option value="">--Загрузка устройств--</option>
+               <option value="">--Сначала выберите пользователя--</option>
             </select>
          </div>
          
@@ -27,7 +36,6 @@
             <select id="commandSelect" class="command-dropdown" onchange="handleCommandChange()">
                <option value="" selected disabled>Выберите команду...</option>
                <option value="GetState">Получить состояние</option>
-               <!--<option value="StartOTA">Прошить контроллер</option>-->
                <option value="Firmware">Загрузить прошивку</option>
                <option value="UserInput">Ввести вручную</option>
            </select>
@@ -35,11 +43,11 @@
             
             <div id="customCommandPanel">
                <h4>Ввод (JSON формат):</h4>
-               <textarea id="customCommandInput" placeholder= '{
-                                                                  "TypeMesseage": "YourCommand",
-                                                                  "Param1": "Value1",
-                                                                  "Param2": 123
-                                                               }'>
+               <textarea id="customCommandInput" placeholder='{
+                  "TypeMesseage": "YourCommand",
+                  "Param1": "Value1",
+                  "Param2": 123
+                  }'>
                </textarea>
             </div>
 
@@ -59,24 +67,44 @@
    </div>
 
    <script>
+      let selectedUser = null;
       let selectedDevice = null;
       let progressInterval = null;
+      let usersList = []; // Храним список пользователей
       
-      // Загрузка списка устройств при открытии страницы
+      // Загрузка списка пользователей при открытии страницы
       document.addEventListener('DOMContentLoaded', function() {
          document.getElementById('commandPanel').style.display = 'none';
          document.getElementById('responseOutput').style.display = 'none';
          document.getElementById('responseMeta').style.display = 'none';
-         getDeviceList();
+         getUserList();
       });
 
-      // Функция обновления списка устройств
-      function refreshDeviceList() {
-         document.getElementById('deviceDropdown').innerHTML = '<option value="">--Обновление списка--</option>';
+      // Функция обновления списка пользователей
+      function refreshUserList() {
+         document.getElementById('userDropdown').innerHTML = '<option value="">--Обновление списка--</option>';
+         document.getElementById('deviceDropdown').innerHTML = '<option value="">--Сначала выберите пользователя--</option>';
          document.getElementById('commandPanel').style.display = 'none';
          document.getElementById('responseOutput').style.display = 'none';
          document.getElementById('responseMeta').style.display = 'none';
-         getDeviceList();
+         getUserList();
+      }
+
+      // Обработчик изменения выбранного пользователя
+      function onUserChange() {
+         const userDropdown = document.getElementById('userDropdown');
+         selectedUser = userDropdown.value;
+         
+         if (selectedUser) {
+            // Находим выбранного пользователя в списке
+            const user = usersList.find(u => u.Token === selectedUser);
+
+            getDeviceList(selectedUser);
+         } else {
+            document.getElementById('deviceDropdown').innerHTML = '<option value="">--Сначала выберите пользователя--</option>';
+            selectedDevice = null;
+            document.getElementById('commandPanel').style.display = 'none';
+         }
       }
 
       // Обработчик изменения выбранной команды
@@ -91,10 +119,50 @@
          sendBtn.style.display = command === "Firmware" ? 'none' : 'block';
       }
 
+      // Функция для получения списка пользователей
+      function getUserList() {
+         fetch('./Admin', {
+            method: 'POST',
+            headers: {
+               'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+               TypeMesseage: "GetUserList"
+            })
+         })
+         .then(response => response.json())
+         .then(data => {
+            usersList = data; // Сохраняем список пользователей
+            updateUserDropdown(data);
+         })
+         .catch(error => {
+            console.error('Error:', error);
+            document.getElementById('userDropdown').innerHTML = '<option value="">Ошибка загрузки пользователей</option>';
+         });
+      }
+
+      // Обновление выпадающего списка пользователей
+      function updateUserDropdown(users) {
+         const dropdown = document.getElementById('userDropdown');
+         dropdown.innerHTML = '<option value="">-- Выберите пользователя --</option>';
+         
+         if (users && users.length > 0) {
+            users.forEach(user => {
+               const option = document.createElement('option');
+               option.value = user.Token;
+               option.textContent = user.Login;
+               dropdown.appendChild(option);
+            });
+         } else {
+            dropdown.innerHTML = '<option value="">Нет доступных пользователей</option>';
+         }
+      }
+
       // Функция для получения списка устройств
-      function getDeviceList() {
+      function getDeviceList(userToken) {
          const data = {
-            TypeMesseage: "GetListDevice"
+            TypeMesseage: "GetListDevice",
+            Token: userToken
          };
          
          fetch('./Admin', {

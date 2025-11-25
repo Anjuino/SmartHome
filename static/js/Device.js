@@ -76,7 +76,7 @@ function getTypeDisplayName(type) {
     return typeNames[type] || type;
 }
 
-// Отрисовать интерфейс для определнного типа устройств
+// Отрисовать интерфейс для определенного типа устройств с общим индикатором
 function prepareDeviceControlUI(deviceType) {
     const controlPanel = document.querySelector('.control-panel');
     let skeletonHTML = '';
@@ -84,26 +84,23 @@ function prepareDeviceControlUI(deviceType) {
     switch(deviceType) {
         case 'Telemetry':
             skeletonHTML = `
-                <div class="telemetry-cards">
-                    <div class="data-card temperature">
-                        <h3>🌡️ Температура</h3>
-                        <div class="data-value">--.-- °C</div>
-                    </div>
-                    <div class="data-card humidity">
-                        <h3>💧 Влажность</h3>
-                        <div class="data-value">--.-- %</div>
-                    </div>
-                    <div class="data-card co2">
-                        <h3>CO2</h3>
-                        <div class="data-value">--- ppm</div>
-                    </div>
+                <div class="loading-overlay active">
+                    <div class="loading-spinner large"></div>
+                    <p>Получение данных с датчиков...</p>
+                </div>
+                <div class="telemetry-cards hidden">
+                    <!-- Плашки будут создаваться динамически когда придут данные -->
                 </div>
             `;
             break;
 
         case 'LedController':
             skeletonHTML = `
-                <div class="control-group">
+                <div class="loading-overlay active">
+                    <div class="loading-spinner large"></div>
+                    <p>Загрузка настроек устройства...</p>
+                </div>
+                <div class="control-group hidden">
                     <div class="control-row">
                         <div class="control-item">
                             <label for="brightness-control" class="control-label"> <span class="icon">💡</span> Яркость </label>
@@ -150,7 +147,12 @@ function prepareDeviceControlUI(deviceType) {
             break;
 
         default:
-            skeletonHTML = '<div>Загрузка управления...</div>';
+            skeletonHTML = `
+                <div class="loading-overlay active">
+                    <div class="loading-spinner large"></div>
+                    <p>Загрузка управления...</p>
+                </div>
+            `;
     }
     controlPanel.innerHTML = skeletonHTML;
 }
@@ -268,26 +270,85 @@ function ShowStateData(TypeDevice, Data) {
     const controlPanel = document.querySelector('.control-panel');
     const data = Data.Data && Data.Data[0] ? Data.Data[0] : Data;
 
-    let HTML = '';
+    // Скрываем индикатор загрузки
+    const loadingOverlay = controlPanel.querySelector('.loading-overlay');
+    if (loadingOverlay) loadingOverlay.classList.remove('active');
+
     if (TypeDevice === 'Telemetry') {
-
-        if (data.Temperature !== undefined) HTML += `<div class="data-card temperature"><h3>🌡️ Температура</h3><div class="data-value">${data.Temperature.toFixed(2)} °C</div></div>`;
-        if (data.Humidity !== undefined)    HTML += `<div class="data-card humidity"><h3>💧 Влажность</h3><div class="data-value">${data.Humidity.toFixed(2)} %</div></div>`;
-        if (data.CO2ppm !== undefined)      HTML += `<div class="data-card co2"><h3>CO2</h3><div class="data-value">${data.CO2ppm} ppm</div></div>`;
-        else                                HTML += `<div class="data-card co2"><h3>CO2</h3><div class="data-value">Нет датчика</div></div>`;
-
-        if (!HTML) telemetryHTML = '<div class="no-data">Нет данных для отображения</div>';
+        const telemetryContainer = controlPanel.querySelector('.telemetry-cards');
         
-        controlPanel.innerHTML = `<div class="telemetry-cards">${HTML}</div>`;
+        // Создаем только те плашки, для которых есть данные
+        let cardsHTML = '';
+        
+        if (data.Temperature !== undefined) {
+            cardsHTML += `
+                <div class="data-card temperature" onclick="handleTelemetryCardClick('Temperature', 'Температура')">
+                    <h3>🌡️ Температура</h3>
+                    <div class="data-value">${data.Temperature.toFixed(2)} °C</div>
+                </div>
+            `;
+        }
+
+        if (data.Humidity !== undefined) {
+            cardsHTML += `
+                <div class="data-card humidity" onclick="handleTelemetryCardClick('Humidity', 'Влажность')">
+                    <h3>💧 Влажность</h3>
+                    <div class="data-value">${data.Humidity.toFixed(2)} %</div>
+                </div>
+            `;
+        }
+
+        if (data.CO2ppm !== undefined) {
+            let co2Status = "";
+            let co2Class = "";
+            
+            if (data.CO2ppm <= 450) {
+                co2Status = "Высокое качество воздуха";
+                co2Class = "excellent";
+            } else if (data.CO2ppm <= 600) {
+                co2Status = "Хорошее качество воздуха";
+                co2Class = "good";
+            } else if (data.CO2ppm <= 1000) {
+                co2Status = "Допустимое качество воздуха";
+                co2Class = "moderate";
+            } else if (data.CO2ppm <= 1200) {
+                co2Status = "Низкое качество воздуха";
+                co2Class = "poor";
+            } else {
+                co2Status = "Предельно допустимое значение";
+                co2Class = "critical";
+            }
+            
+            cardsHTML += `
+                <div class="data-card co2 ${co2Class}" onclick="handleTelemetryCardClick('CO2ppm', 'CO2')">
+                    <h3>CO2</h3>
+                    <div class="data-value">${data.CO2ppm} ppm</div>
+                    <div class="co2-status">${co2Status}</div>
+                </div>
+            `;
+        }
+        
+        // Если нет данных вообще
+        if (!cardsHTML) {
+            cardsHTML = '<div class="no-data">Нет данных для отображения</div>';
+        }
+        
+        telemetryContainer.innerHTML = cardsHTML;
+        telemetryContainer.classList.remove('hidden');
     }
 
     if (TypeDevice === 'LedController') {
+        const controlGroup = controlPanel.querySelector('.control-group');
+        
+        // Заполняем данные
         if (data.Brightness !== undefined) {
-            document.getElementById('brightness-control').value = data.Brightness;
+            const brightnessControl = document.getElementById('brightness-control');
+            if (brightnessControl) brightnessControl.value = data.Brightness;
         }
         
         if (data.Speed !== undefined) {
-            document.getElementById('speed-control').value = data.Speed;
+            const speedControl = document.getElementById('speed-control');
+            if (speedControl) speedControl.value = data.Speed;
         }
         
         if (data.ColorR !== undefined && data.ColorG !== undefined && data.ColorB !== undefined) {
@@ -297,45 +358,179 @@ function ShowStateData(TypeDevice, Data) {
             }).join('');
             
             const hexColor = rgbToHex(data.ColorR, data.ColorG, data.ColorB);
-            document.getElementById('color-control').value = hexColor;
+            const colorControl = document.getElementById('color-control');
+            if (colorControl) colorControl.value = hexColor;
         }
         
         if (data.Mode !== undefined) {
             const modeSelect = document.getElementById('mode-control');
-            
-            if (data.Mode === 0) {
-                const offOption = modeSelect.querySelector('option[value="250"]');
-                if (offOption) {
-                    offOption.textContent = 'Выключено';
-                }
-            } 
-            // Если любой другой режим - меняем обратно на "Выключить"
-            else {
-                const offOption = modeSelect.querySelector('option[value="250"]');
-                if (offOption) {
-                    offOption.textContent = 'Выключить';
-                }
+            if (modeSelect) {
+                modeSelect.value = data.Mode === 0 ? 250 : data.Mode;
             }
-            
-            // Устанавливаем значение в селекте
-            modeSelect.value = data.Mode === 0 ? 250 : data.Mode;
-            
-            // Обновляем статус
-            const modeNames = {
-                0: 'Выключено',
-                1: 'Радуга',
-                2: 'Бегущий огонь', 
-                3: 'Бегущие огни',
-                4: 'Одиночные огни (случайные)',
-                5: 'Вспышки',
-                6: 'Смена цветов',
-                7: 'Бегущий огонь 2',
-                8: 'Хаос',
-                9: '2 бегущих огня',
-                249: 'Статичный цвет',
-                250: data.Mode === 0 ? 'Выключено' : 'Выключить'
-            };
-            
         }
+        
+        controlGroup.classList.remove('hidden');
     }
 }
+
+function handleTelemetryCardClick(sensorType, sensorName) {
+    if (!selectedDevice) return;
+    
+    // Сохраняем данные для графика
+    currentSensorType = sensorType;
+    currentSensorName = sensorName;
+    
+    // Переходим на роут графика
+    router.navigate('deviceGraph');
+    
+    // Запрашиваем данные за посление 18 часов
+    getSensorDataFromDB(sensorType, 12);
+}
+
+// Запрос данных датчика из БД
+async function getSensorDataFromDB(sensorType, hoursBack) {
+    const currentToken = localStorage.getItem('userToken');
+    if (!currentToken) {
+        router.navigate('login');
+        return;
+    }
+
+    try {
+        const response = await fetch('./Device/SendMesseage', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                ChipId: selectedDevice,
+                Token: currentToken,
+                TypeMesseage: "GetDataFromDB",
+                SensorType: sensorType,
+                HoursBack: hoursBack
+            })
+        });
+
+        const data = await response.json();
+        if (response.ok && data.response) displaySensorChart(sensorType, data.response);
+        else console.log("Ошибка загрузки данных для построения графика");
+    } catch (error) {
+        console.error('Ошибка сети:', error);
+    }
+}
+
+// Отобразить график с данными
+function displaySensorChart(sensorType, sensorData) {
+    const graphSection = document.getElementById('deviceGraphSection');
+    const loadingOverlay = graphSection.querySelector('.loading-overlay');
+    const chartContainer = graphSection.querySelector('.chart-container');
+
+    // Скрываем индикатор, показываем график
+    if (loadingOverlay) loadingOverlay.classList.remove('active');
+    if (chartContainer) chartContainer.classList.remove('hidden');
+
+    const ctx = document.getElementById('sensorChart').getContext('2d');
+        
+    // Подготавливаем данные для графика
+    const labels = sensorData.map(item => {
+        const date = new Date(item.Time);
+        return date.toLocaleTimeString('ru-RU', { 
+            hour: '2-digit', 
+            minute: '2-digit' 
+        });
+    });
+    
+    const dataValues = sensorData.map(item => {
+        const value = item[sensorType];
+        return sensorType === 'CO2ppm' ? Math.round(value) : parseFloat(value.toFixed(2));
+    });
+    
+    // Настройки графика в зависимости от типа датчика
+    const chartConfig = {
+        Temperature: {
+            label: 'Температура (°C)',
+            backgroundColor: 'rgba(0, 0, 0, 0.1)',
+            borderColor: '#fe194bff',
+            unit: '°C'
+        },
+        Humidity: {
+            label: 'Влажность (%)',
+            borderColor: '#36a2eb',
+            backgroundColor: 'rgba(0, 0, 0, 0.1)',
+            unit: '%'
+        },
+        CO2ppm: {
+            label: 'CO2 (ppm)',
+            borderColor: '#3fdd1fff',
+            backgroundColor: 'rgba(0, 0, 0, 0.1)',
+            unit: 'ppm'
+        }
+    };
+    
+    const config = chartConfig[sensorType] || {
+        label: sensorType,
+        borderColor: '#000000ff',
+        backgroundColor: 'rgba(255, 0, 0, 1)',
+        unit: ''
+    };
+    
+    // Создаем график
+    window.sensorChartInstance = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: config.label,
+                data: dataValues,
+                borderColor: config.borderColor,
+                backgroundColor: config.backgroundColor,
+                borderWidth: 3,
+                fill: true,
+                tension: 0.3,
+                pointBackgroundColor: config.borderColor,
+                pointBorderColor: '#fff',
+                pointBorderWidth: 1,
+                pointRadius: 4,
+                pointHoverRadius: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'top',
+                },
+                tooltip: {
+                    mode: 'index',
+                    intersect: false,
+                    callbacks: {
+                        label: function(context) {
+                            return `${context.dataset.label}: ${context.parsed.y} ${config.unit}`;
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: sensorType !== 'Temperature',
+                    title: {
+                        display: true,
+                        text: config.unit
+                    }
+                },
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Время'
+                    }
+                }
+            },
+            interaction: {
+                intersect: false,
+                mode: 'nearest'
+            }
+        }
+    });
+}
+

@@ -140,6 +140,16 @@ class HTTPHandlerClient(tornado.web.RequestHandler):
                     "Brightness": JsonData['Brightness']
                 }
 
+            if (TypeMesseage == "GetDataFromDB"):
+                sensor_type = JsonData['SensorType']
+                hours_back = JsonData.get('HoursBack', 12)
+                
+                # Получаем данные из БД
+                sensor_data = await DataBase.get_sensor_data_from_db(ChipId, sensor_type, hours_back)
+                
+                self.write({'status': 'success', 'response': sensor_data})
+                return  
+
             # Находим нужное устройство с помощью общей функции
             Device = Controllers.WebSocketESP.FindDeviceByChipId(ChipId)
             

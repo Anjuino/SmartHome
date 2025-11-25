@@ -9,6 +9,7 @@ import time
 admin_sessions = {} # Хранилище сессий админов
 
 class AdminHandler(tornado.web.RequestHandler):
+
     async def get(self):
         session_id = self.get_cookie("admin_session")
         if not await self.check_admin_session(session_id):
@@ -91,7 +92,22 @@ class AdminHandler(tornado.web.RequestHandler):
         JsonData = json.loads(self.request.body)
         TypeMesseage = JsonData['TypeMesseage']
 
-        if (TypeMesseage == "GetListDevice"): 
+        if (TypeMesseage == "GetUserList"): 
+            # Получение списка пользователей
+            session_id = self.get_cookie("admin_session")
+            if await self.check_admin_session(session_id):
+                try:
+                    users = await DataBase.GetAllUsers()
+                    self.write(json.dumps(users))
+                except Exception as e:
+                    self.set_status(500)
+                    self.write({"error": f"Ошибка получения пользователей: {str(e)}"})
+            else:
+                self.set_status(403)
+                self.write({"error": "Доступ запрещен"})
+            return
+
+        elif (TypeMesseage == "GetListDevice"): 
             Token = JsonData.get('Token')
             
             # Если токен пустой или None - отдаем весь список всех устройств (только для админов)

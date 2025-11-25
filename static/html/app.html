@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" href="./static/icon/favicon.png" type="image/x-icon">
-    <link rel="stylesheet" type="text/css" href="./static/css/style_app.css">
+    <link rel="stylesheet" type="text/css" href="./static/css/style_app.css?v=1.1">
     <title>Мои устройства</title>
 </head>
 <body>
@@ -85,8 +85,30 @@
         </div>
     </div>
 
+    <div id="deviceGraphSection" class="page-section">
+        <div class="container">
+            <div class="card">
+                <div class="graph-container">
+                    <div class="graph-content">
+                        <div class="loading-overlay active">
+                            <div class="loading-spinner large"></div>
+                            <p id="graphLoadingText">Загрузка данных...</p>
+                        </div>
+                        <div class="chart-container hidden">
+                            <canvas id="sensorChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <div class="buttons-container">
+                    <button class="back-button" onclick="goBackToControl()">←</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script  src="./static/js/Common.js"></script> <!--Для чего то общего хз пока-->
     <script  src="./static/js/Device.js"></script> <!--Для устройств>-->
+    <script  src="./static/js/chart.js"></script> <!--Для графиков>-->
 
     <script>
         let userToken = null;
@@ -95,6 +117,8 @@
         let allDevices = [];
         let deviceTypes = {};
         let currentDeviceType = '';
+        let currentSensorType = '';
+        let currentSensorName = '';
         let lastDeviceControlCall = 0;
         let isLoadingDevices = false;
         let lastDevicesLoadTime = 0;
@@ -107,7 +131,8 @@
                     'devices': this.showDevices.bind(this),
                     'deviceList': this.showDeviceList.bind(this),
                     'deviceControl': this.showDeviceControl.bind(this),
-                    'deviceSettings': this.showDeviceSettings.bind(this)
+                    'deviceSettings': this.showDeviceSettings.bind(this),
+                    'deviceGraph': this.showDeviceGraph.bind(this)
                 };
             }
 
@@ -123,6 +148,19 @@
                 const hash = window.location.hash.substring(1) || 'login';
                 const handler = this.routes[hash] || this.routes['login'];
                 handler();
+            }
+
+            showDeviceGraph() {
+                if (!this.checkAuth()) return;
+                
+                if (!selectedDevice) {
+                    this.navigate('devices');
+                    return;
+                }
+                
+                this.hideAllSections();
+                document.getElementById('deviceGraphSection').style.display = 'block';
+                document.getElementById('appNav').style.display = 'block';
             }
 
             showDeviceSettings() {
@@ -198,7 +236,6 @@
             }
 
             showDeviceControl() {
-                
                 // Борьба с дублированием запросов
                 const now = Date.now();
                 if (now - lastDeviceControlCall < 1000) {
