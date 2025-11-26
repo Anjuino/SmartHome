@@ -180,8 +180,8 @@ async function sendLedCommand(TypeCommand) {
     try {
         let requestData = {
             ChipId: selectedDevice,
-            Token: currentToken,
-            TypeMesseage: TypeCommand
+            TypeMesseage: TypeCommand,
+            Token:        currentToken
         };
 
         // Добавляем параметры в зависимости от типа команды
@@ -383,7 +383,7 @@ function handleTelemetryCardClick(sensorType, sensorName) {
     // Переходим на роут графика
     router.navigate('deviceGraph');
     
-    // Запрашиваем данные за посление 18 часов
+    // Запрашиваем данные за посление 12 часов
     getSensorDataFromDB(sensorType, 12);
 }
 

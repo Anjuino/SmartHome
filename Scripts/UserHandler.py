@@ -83,29 +83,26 @@ class HTTPHandlerClient(tornado.web.RequestHandler):
             ### общие команды
             if (TypeMesseage == "GetState"): 
                 TypeResponse = "State"
-                Request = {"TypeMesseage": TypeMesseage}
+                Request = JsonData
 
             if (TypeMesseage == "Reboot"):
-                Request = {"TypeMesseage": TypeMesseage}
+                Request = JsonData
 
-            ### команды для телеметрии
-            '''if (TypeMesseage == "UpdateZoneName"):
-                TypeResponse = "UpdateZoneName"
-                Request = {
-                    "TypeMesseage": TypeMesseage,
-                    "NumZone": JsonData['NumZone'],
-                    "OldName": JsonData['OldName'],
-                    "NewName": JsonData['NewName']
-                }'''
+            if (TypeMesseage == "GetSetting"):
+                TypeResponse = "Controller_Setting"
+                Request = JsonData
+
+            if (TypeMesseage == "SetSetting"):
+                TypeResponse = "SettingWrite"
+                Request = JsonData
 
             ### команды для контроллеров лент
             if (TypeMesseage == "GetSettingLed"):
                 TypeResponse = "LedSetting"
-                Request = {
-                    "TypeMesseage": TypeMesseage,
-                }
+                Request = JsonData
 
             if (TypeMesseage == "UpdateSettingLed"):
+                '''
                 IsDetectedMove = JsonData.get('IsDetectedMove')
                 if IsDetectedMove:
                     Request = {
@@ -117,28 +114,18 @@ class HTTPHandlerClient(tornado.web.RequestHandler):
                     Request = {
                         "TypeMesseage": TypeMesseage,
                         "LedCount": JsonData['LedCount']
-                    }    
+                    }  
+                '''
+                Request = JsonData     
                 
             if (TypeMesseage == "SetStateToLed"):
-                Request = {
-                    "TypeMesseage": "SetState",
-                    "Mode": JsonData['Mode'],
-                    "ColorR": JsonData['ColorR'],
-                    "ColorG": JsonData['ColorG'],
-                    "ColorB": JsonData['ColorB'] 
-                }
+                Request = JsonData
 
             if (TypeMesseage == "SetSpeedToLed"):
-                Request = {
-                    "TypeMesseage": "SetSpeed",
-                    "Speed": JsonData['Speed']
-                }
+                Request = JsonData
 
             if (TypeMesseage == "SetBrightnessToLed"):
-                Request = {
-                    "TypeMesseage": "SetBrightness",
-                    "Brightness": JsonData['Brightness']
-                }
+                Request = JsonData
 
             if (TypeMesseage == "GetDataFromDB"):
                 sensor_type = JsonData['SensorType']
