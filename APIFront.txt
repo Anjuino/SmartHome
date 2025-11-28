@@ -73,6 +73,18 @@ IsDetectedMove - добавлять если у контроллера есть 
 "TypeMesseage": "GetIpDevice"
 }
 
+Пролучить общие настройки
+{
+"TypeMesseage": "GetSetting"
+}
+
+Записать общие настройки
+{
+"TypeMesseage": "SetSetting",
+"IpServer": "#####", [32]
+"Token": "#######" [20]
+}
+
 
 /Device/SendMesseage
 {
